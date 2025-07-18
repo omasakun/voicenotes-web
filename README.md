@@ -9,4 +9,9 @@ vfox install
 pnpm install
 
 pnpm dev
+
+# # # # #
+
+pnpm db:generate
+pnpm db:migrate
 ```
