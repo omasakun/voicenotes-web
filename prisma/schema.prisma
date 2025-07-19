@@ -24,17 +24,38 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  inviterId       String?
+  inviter         User?        @relation("Invitations", fields: [inviterId], references: [id], onDelete: Restrict)
+  invitee         User[]       @relation("Invitations")
+  sentInvitations Invitation[] @relation("SentInvitations")
+
   @@unique([email])
   @@map("user")
 }
 
-// better-auth
+model Invitation {
+  id        String  @id @default(cuid(2))
+  code      String  @unique
+  email     String?
+  maxUses   Int     @default(1)
+  usedCount Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expiresAt DateTime
+
+  inviterId String
+  inviter   User   @relation("SentInvitations", fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@map("invitation")
+}
+
 model Session {
   id             String   @id
-  expiresAt      DateTime
   token          String
   createdAt      DateTime
   updatedAt      DateTime
+  expiresAt      DateTime
   ipAddress      String?
   userAgent      String?
   userId         String
@@ -45,7 +66,6 @@ model Session {
   @@map("session")
 }
 
-// better-auth
 model Account {
   id                    String    @id
   accountId             String
@@ -65,7 +85,6 @@ model Account {
   @@map("account")
 }
 
-// better-auth
 model Verification {
   id         String    @id
   identifier String

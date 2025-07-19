@@ -2,6 +2,8 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Inconsolata, Noto_Sans_JP } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/client";
 
 const notoSansJP = Noto_Sans_JP({
@@ -28,10 +30,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${notoSansJP.variable} ${inconsolata.variable} antialiased`}
-      >
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+      <body className={cn(notoSansJP.variable, inconsolata.variable, "bg-gradient-to-br from-blue-50 to-indigo-100")}>
+        <TRPCReactProvider>
+          {children}
+          <Toaster />
+        </TRPCReactProvider>
       </body>
     </html>
   );

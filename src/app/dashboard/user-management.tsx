@@ -1,0 +1,194 @@
+"use client";
+
+import { formatDistance } from "date-fns";
+import { Ban, CheckCircle, MoreHorizontal, Search, Shield } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  useListUsers,
+  useBanUserMutation,
+  useUnbanUserMutation,
+  useRemoveUserMutation,
+  useSetRoleMutation,
+} from "@/hooks/auth-admin";
+
+export function UserManagement() {
+  const [search, setSearch] = useState("");
+
+  const { data: usersData, isLoading } = useListUsers({ search });
+
+  const banUserMutation = useBanUserMutation();
+  const unbanUserMutation = useUnbanUserMutation();
+  const deleteUserMutation = useRemoveUserMutation();
+  const updateUserMutation = useSetRoleMutation();
+
+  const banUser = async (userId: string, reason: string) => {
+    await banUserMutation.mutateAsync({
+      userId,
+      reason,
+    });
+  };
+
+  const unbanUser = async (userId: string) => {
+    await unbanUserMutation.mutateAsync({ userId });
+  };
+
+  const deleteUser = async (userId: string) => {
+    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      await deleteUserMutation.mutateAsync({ userId });
+    }
+  };
+
+  const toggleAdmin = async (userId: string, currentRole: string | null) => {
+    await updateUserMutation.mutateAsync({
+      userId,
+      role: currentRole === "admin" ? "user" : "admin",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search users..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 w-[300px]"
+              disabled={isLoading}
+            />
+          </div>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Users</CardTitle>
+          <CardDescription>Manage user accounts, roles, and permissions.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Invited By</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Sessions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Loading...
+                  </TableCell>
+                </TableRow>
+              ) : (
+                usersData?.users?.map((user: any) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{user.name}</div>
+                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.role === "admin" ? (
+                        <Badge variant="default">
+                          <Shield className="h-3 w-3 mr-1" />
+                          Admin
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">User</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.banned ? (
+                        <Badge variant="destructive">
+                          <Ban className="h-3 w-3 mr-1" />
+                          Banned
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Active
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.inviterId ? (
+                        <div className="text-sm">
+                          Invited by user
+                          <div className="text-xs text-muted-foreground">ID: {user.inviterId}</div>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {formatDistance(new Date(user.createdAt), new Date(), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>Sessions: {user.session?.length || 0}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => toggleAdmin(user.id, user.role)}>
+                            {user.role === "admin" ? "Remove Admin" : "Make Admin"}
+                          </DropdownMenuItem>
+                          {user.banned ? (
+                            <DropdownMenuItem onClick={() => unbanUser(user.id)}>Unban User</DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const reason = prompt("Reason for ban:");
+                                if (reason) banUser(user.id, reason);
+                              }}
+                            >
+                              Ban User
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => deleteUser(user.id)} className="text-destructive">
+                            Delete User
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
