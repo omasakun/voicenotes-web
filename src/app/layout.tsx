@@ -1,13 +1,17 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 import { Inconsolata, Noto_Sans_JP } from "next/font/google";
-import "./globals.css";
+import { TRPCReactProvider } from "@/trpc/client";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
+  subsets: ["latin"],
 });
 
 const inconsolata = Inconsolata({
   variable: "--font-inconsolata",
+  subsets: ["latin"],
 });
 
 // TODO: update metadata
@@ -27,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${notoSansJP.variable} ${inconsolata.variable} antialiased`}
       >
-        {children}
+        <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
   );
