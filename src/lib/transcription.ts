@@ -6,6 +6,8 @@ import type { WhisperVerboseResponse } from "@/types/transcription";
 import { transcribeWithFasterWhisper } from "./faster-whisper";
 import { prisma } from "./prisma";
 
+const PROGRESS_DEBOUNCE_MS = 500;
+
 interface TranscriptionJob {
   recordingId: string;
   filePath: string;
@@ -94,13 +96,30 @@ class TranscriptionQueue {
   private async processRecording(job: TranscriptionJob) {
     console.log(`Starting transcription for recording ${job.recordingId}`);
 
+    let lastProgressUpdate = 0;
+
+    const debouncedProgressUpdate = async (progress: number) => {
+      const now = Date.now();
+      if (now - lastProgressUpdate >= PROGRESS_DEBOUNCE_MS || progress >= 100) {
+        lastProgressUpdate = now;
+        try {
+          await prisma.audioRecording.update({
+            where: { id: job.recordingId },
+            data: { transcriptionProgress: Math.round(progress) },
+          });
+        } catch (error) {
+          console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
+        }
+      }
+    };
+
     try {
       // Update status to processing
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
         data: {
           status: "PROCESSING",
-          transcriptionProgress: 10,
+          transcriptionProgress: 1,
         },
       });
 
@@ -110,20 +129,11 @@ class TranscriptionQueue {
       // Update duration in database
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
-        data: { duration, transcriptionProgress: 20 },
-      });
-
-      // Convert to supported format if needed (OpenAI supports mp3, mp4, mpeg, mpga, m4a, wav, webm)
-      const processedFilePath = await this.preprocessAudio(job.filePath);
-
-      // Update progress
-      await prisma.audioRecording.update({
-        where: { id: job.recordingId },
-        data: { transcriptionProgress: 30 },
+        data: { duration },
       });
 
       // Transcribe using faster-whisper
-      const whisperResponse = await this.transcribeWithFasterWhisper(processedFilePath);
+      const whisperResponse = await this.transcribeWithFasterWhisper(job.filePath, debouncedProgressUpdate);
 
       // Save transcription to database
       await prisma.audioRecording.update({
@@ -176,16 +186,15 @@ class TranscriptionQueue {
     }
   }
 
-  private async preprocessAudio(filePath: string): Promise<string> {
-    // For now, just return the original path
-    // In the future, we could convert unsupported formats to mp3
-    return filePath;
-  }
-
-  private async transcribeWithFasterWhisper(filePath: string): Promise<WhisperVerboseResponse> {
+  private async transcribeWithFasterWhisper(
+    filePath: string,
+    onProgress?: (progress: number, message?: string) => void,
+  ): Promise<WhisperVerboseResponse> {
     try {
       // Use environment variable defaults
-      const result = await transcribeWithFasterWhisper(filePath);
+      const result = await transcribeWithFasterWhisper(filePath, {
+        onProgress,
+      });
 
       return result;
     } catch (error) {
@@ -194,7 +203,7 @@ class TranscriptionQueue {
     }
   }
 
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: <explanation>
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: fallback method for OpenAI
   private async transcribeWithOpenAI(filePath: string): Promise<WhisperVerboseResponse> {
     const fullPath = join(process.cwd(), filePath);
 

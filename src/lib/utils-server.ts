@@ -108,3 +108,20 @@ export function parseFormData(request: Request): AsyncIterable<FormDataEntry> {
     },
   };
 }
+
+export async function* parseJSONLStream<T>(stream: NodeJS.ReadableStream): AsyncGenerator<T> {
+  let buffer = "";
+  for await (const chunk of stream) {
+    buffer += chunk.toString();
+    const lines = buffer.split("\n");
+    buffer = lines.pop()!;
+    for (const line of lines) {
+      if (line.trim()) {
+        yield JSON.parse(line);
+      }
+    }
+  }
+  if (buffer.trim()) {
+    yield JSON.parse(buffer);
+  }
+}
