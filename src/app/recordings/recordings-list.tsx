@@ -1,7 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Clock, Download, FileAudio, Play, Search, Trash2 } from "lucide-react";
+import { Clock, FileAudio, Play, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ export function RecordingsList() {
     ),
   );
 
+  // TODO: call useMutation for each recording entry
   const deleteRecording = useMutation(
     trpc.recordings.delete.mutationOptions({
       onSuccess: () => {
@@ -95,20 +96,20 @@ export function RecordingsList() {
         {recordings.map((recording) => (
           <Card key={recording.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <CardTitle className="text-lg">{recording.title}</CardTitle>
-                  <CardDescription className="flex items-center gap-2 text-sm">
-                    <Clock className="h-3 w-3" />
-                    {recording.duration ? formatDuration(recording.duration) : "Unknown Duration"}
-                    <Separator orientation="vertical" />
-                    {formatFileSize(recording.fileSize)}
-                    <Separator orientation="vertical" />
-                    {formatDate(new Date(recording.createdAt))}
-                  </CardDescription>
-                </div>
+              <CardTitle className="flex items-center justify-between gap-2">
+                <Button variant="link" className="text-lg p-0" onClick={() => handlePlay(recording.id)}>
+                  {recording.title}
+                </Button>
                 <Badge className={getStatusColor(recording.status)}>{getStatusText(recording.status)}</Badge>
-              </div>
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2 text-sm">
+                <Clock className="h-3 w-3" />
+                {recording.duration ? formatDuration(recording.duration) : "Unknown Duration"}
+                <Separator orientation="vertical" />
+                {formatFileSize(recording.fileSize)}
+                <Separator orientation="vertical" />
+                {formatDate(new Date(recording.createdAt))}
+              </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-4">
@@ -123,18 +124,10 @@ export function RecordingsList() {
               )}
 
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handlePlay(recording.id)}>
-                    <Play className="h-3 w-3" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`/api/audio/${recording.id}`} download>
-                      <Download className="h-3 w-3" />
-                      Download
-                    </a>
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm" onClick={() => handlePlay(recording.id)}>
+                  <Play className="h-3 w-3" />
+                  Play
+                </Button>
                 <Button
                   variant="outline-destructive"
                   size="sm"

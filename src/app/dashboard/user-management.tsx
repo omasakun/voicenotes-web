@@ -25,6 +25,7 @@ import {
 export function UserManagement() {
   const [search, setSearch] = useState("");
 
+  // TODO: pagination and sorting
   const { data: usersData, isLoading } = useListUsers({ search });
 
   const banUserMutation = useBanUserMutation();

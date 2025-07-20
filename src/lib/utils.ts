@@ -14,7 +14,9 @@ export function formatFileSize(bytes: number): string {
 }
 
 export function formatDuration(seconds: number): string {
-  if (seconds === 0) return "0 minutes";
+  seconds = Math.floor(seconds);
+  if (seconds < 60) return `${seconds}s`;
+
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
 
@@ -88,7 +90,7 @@ export function postWithProgress({
 export const getStatusColor = (status: string) => {
   switch (status) {
     case "COMPLETED":
-      return "bg-green-500";
+      return "bg-background text-foreground border-border";
     case "PROCESSING":
       return "bg-blue-500";
     case "FAILED":
