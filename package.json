@@ -6,12 +6,14 @@
     "start": "next start",
     "lint": "next lint",
     "format": "biome check --write",
-    "postinstall": "prisma generate --no-engine",
+    "postinstall": "prisma generate --no-engine && pnpm python:setup",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
-    "auth:generate": "npx @better-auth/cli generate"
+    "auth:generate": "npx @better-auth/cli generate",
+    "python:setup": "cd python && uv sync",
+    "python:test": "cd python && uv run python transcribe.py --help"
   },
   "dependencies": {
     "@better-auth/cli": "^1.2.12",

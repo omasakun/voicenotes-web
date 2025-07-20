@@ -2,6 +2,9 @@
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
   },
+  "[python]": {
+    "editor.defaultFormatter": "eeyore.yapf"
+  },
   "editor.codeActionsOnSave": {
     "source.biome": "explicit"
   },

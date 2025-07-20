@@ -3,11 +3,8 @@ import { join } from "node:path";
 import { execa } from "execa";
 import { OpenAI } from "openai";
 import type { WhisperVerboseResponse } from "@/types/transcription";
+import { transcribeWithFasterWhisper } from "./faster-whisper";
 import { prisma } from "./prisma";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 interface TranscriptionJob {
   recordingId: string;
@@ -18,6 +15,7 @@ class TranscriptionQueue {
   private queue: TranscriptionJob[] = [];
   private processing = false;
   private initialized = false;
+  private openai: OpenAI | null = null;
 
   add(job: TranscriptionJob) {
     this.queue.push(job);
@@ -34,16 +32,17 @@ class TranscriptionQueue {
     console.log("Initializing transcription queue...");
 
     try {
-      // Reset PROCESSING status to PENDING for interrupted recordings
-      const { count: numProcessing } = await prisma.audioRecording.updateMany({
-        where: {
-          status: "PROCESSING",
-        },
-        data: {
-          status: "PENDING",
-          transcriptionProgress: 0,
-        },
-      });
+      // TODO: Reset PROCESSING status to PENDING for interrupted recordings
+      // const { count: numProcessing } = await prisma.audioRecording.updateMany({
+      //   where: {
+      //     status: "PROCESSING",
+      //   },
+      //   data: {
+      //     status: "PENDING",
+      //     transcriptionProgress: 0,
+      //   },
+      // });
+      const numProcessing = 0;
 
       // Find all recordings that need processing
       const pendingRecordings = await prisma.audioRecording.findMany({
@@ -123,8 +122,8 @@ class TranscriptionQueue {
         data: { transcriptionProgress: 30 },
       });
 
-      // Transcribe using OpenAI Whisper
-      const whisperResponse = await this.transcribeWithOpenAI(processedFilePath);
+      // Transcribe using faster-whisper
+      const whisperResponse = await this.transcribeWithFasterWhisper(processedFilePath);
 
       // Save transcription to database
       await prisma.audioRecording.update({
@@ -183,8 +182,29 @@ class TranscriptionQueue {
     return filePath;
   }
 
+  private async transcribeWithFasterWhisper(filePath: string): Promise<WhisperVerboseResponse> {
+    try {
+      // Use environment variable defaults
+      const result = await transcribeWithFasterWhisper(filePath);
+
+      return result;
+    } catch (error) {
+      console.error("Faster Whisper transcription error:", error);
+      throw new Error(`${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+  }
+
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: <explanation>
   private async transcribeWithOpenAI(filePath: string): Promise<WhisperVerboseResponse> {
     const fullPath = join(process.cwd(), filePath);
+
+    const openai =
+      this.openai ||
+      new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+    this.openai = openai;
 
     try {
       const transcription = await openai.audio.transcriptions.create({
