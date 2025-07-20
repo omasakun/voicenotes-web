@@ -111,6 +111,7 @@ model AudioRecording {
   transcription         String?
   transcriptionProgress Float   @default(0) // 0-100
   transcriptionError    String?
+  whisperData           String? // JSON string containing full verbose whisper response
 
   // Metadata
   createdAt DateTime @default(now())

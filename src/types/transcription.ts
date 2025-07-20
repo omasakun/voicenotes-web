@@ -1,0 +1,34 @@
+export interface WordTiming {
+  word: string;
+  start: number;
+  end: number;
+}
+
+export interface Sentence {
+  words: WordTiming[];
+  start: number;
+  end: number;
+  text: string;
+}
+
+export interface WhisperSegment {
+  id: number;
+  seek: number;
+  start: number;
+  end: number;
+  text: string;
+  tokens: number[];
+  temperature: number;
+  avg_logprob: number;
+  compression_ratio: number;
+  no_speech_prob: number;
+}
+
+export interface WhisperVerboseResponse {
+  task: string;
+  language: string;
+  duration: number;
+  text: string;
+  words?: WordTiming[];
+  segments?: WhisperSegment[];
+}

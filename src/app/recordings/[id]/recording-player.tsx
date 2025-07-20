@@ -6,6 +6,7 @@ import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "luc
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,13 @@ interface RecordingPlayerProps {
 }
 
 export function RecordingPlayer({ recording }: RecordingPlayerProps) {
+  const [currentTime, setCurrentTime] = useState(0);
+  const [seekTime, setSeekTime] = useState<number | null>(null);
+
+  const handleSeek = (time: number) => {
+    setSeekTime(time);
+  };
+
   return (
     <div className="space-y-6">
       <RecordingPlayerHeader recording={recording} />
@@ -30,12 +38,25 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
           <RecordingInfo recording={recording} />
         </CardHeader>
         <CardContent className="space-y-4">
-          <AudioPlayer src={`/api/audio/${recording.id}`} duration={recording.duration} />
+          <AudioPlayer
+            src={`/api/audio/${recording.id}`}
+            duration={recording.duration}
+            onTimeUpdate={setCurrentTime}
+            seekTime={seekTime}
+            onSeekComplete={() => setSeekTime(null)}
+          />
           {recording.status === "PROCESSING" && <TranscriptionProgress progress={recording.transcriptionProgress} />}
           {recording.status === "FAILED" && <TranscriptionError error={recording.transcriptionError} />}
         </CardContent>
       </Card>
-      {recording.transcription && <TranscriptionCard transcription={recording.transcription} />}
+      {recording.transcription && (
+        <InteractiveTranscription
+          transcription={recording.transcription}
+          whisperData={recording.whisperData}
+          currentTime={currentTime}
+          onSeek={handleSeek}
+        />
+      )}
     </div>
   );
 }
@@ -49,7 +70,7 @@ function RecordingPlayerHeader({ recording }: { recording: AudioRecording }) {
         Back to Recordings
       </Button>
       <Button variant="outline" asChild>
-        <a href={`/api/audio/${recording.id}`} download>
+        <a href={`/api/audio/${recording.id}`} download={recording.originalName}>
           <Download className="h-4 w-4 mr-2" />
           Download
         </a>
@@ -137,7 +158,19 @@ function RecordingInfo({ recording }: { recording: AudioRecording }) {
   );
 }
 
-function AudioPlayer({ src, duration: initialDuration }: { src: string; duration: number | null }) {
+function AudioPlayer({
+  src,
+  duration: initialDuration,
+  onTimeUpdate,
+  seekTime,
+  onSeekComplete,
+}: {
+  src: string;
+  duration: number | null;
+  onTimeUpdate: (time: number) => void;
+  seekTime: number | null;
+  onSeekComplete: () => void;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -147,8 +180,12 @@ function AudioPlayer({ src, duration: initialDuration }: { src: string; duration
     const audio = audioRef.current;
     if (!audio) return;
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateTime = () => {
+      const time = audio.currentTime;
+      setCurrentTime(time);
+      onTimeUpdate(time);
+    };
+    const updateDuration = () => Number.isFinite(audio.duration) && setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", updateTime);
@@ -160,7 +197,16 @@ function AudioPlayer({ src, duration: initialDuration }: { src: string; duration
       audio.removeEventListener("loadedmetadata", updateDuration);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [onTimeUpdate]);
+
+  // Handle seeking from external source
+  useEffect(() => {
+    if (seekTime !== null && audioRef.current) {
+      audioRef.current.currentTime = seekTime;
+      setCurrentTime(seekTime);
+      onSeekComplete();
+    }
+  }, [seekTime, onSeekComplete]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -180,6 +226,7 @@ function AudioPlayer({ src, duration: initialDuration }: { src: string; duration
 
     audio.currentTime = value;
     setCurrentTime(value);
+    onTimeUpdate(value);
   };
 
   const resetAudio = () => {
@@ -188,6 +235,7 @@ function AudioPlayer({ src, duration: initialDuration }: { src: string; duration
 
     audio.currentTime = 0;
     setCurrentTime(0);
+    onTimeUpdate(0);
     setIsPlaying(false);
     audio.pause();
   };
@@ -245,21 +293,5 @@ function TranscriptionError({ error }: { error: string | null }) {
       <div className="font-bold">Transcription Error</div>
       <p>{error || "An unknown error occurred"}</p>
     </div>
-  );
-}
-
-function TranscriptionCard({ transcription }: { transcription: string }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Transcription</CardTitle>
-        <CardDescription>Automatically generated transcript of your audio recording</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="prose prose-sm max-w-none">
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">{transcription}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

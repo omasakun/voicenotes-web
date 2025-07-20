@@ -2,6 +2,7 @@ import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { execa } from "execa";
 import { OpenAI } from "openai";
+import type { WhisperVerboseResponse } from "@/types/transcription";
 import { prisma } from "./prisma";
 
 const openai = new OpenAI({
@@ -16,11 +17,59 @@ interface TranscriptionJob {
 class TranscriptionQueue {
   private queue: TranscriptionJob[] = [];
   private processing = false;
+  private initialized = false;
 
-  async add(job: TranscriptionJob) {
+  add(job: TranscriptionJob) {
     this.queue.push(job);
     if (!this.processing) {
       this.processQueue();
+    }
+  }
+
+  async initialize() {
+    if (this.initialized) {
+      return;
+    }
+
+    console.log("Initializing transcription queue...");
+
+    try {
+      // Reset PROCESSING status to PENDING for interrupted recordings
+      const { count: numProcessing } = await prisma.audioRecording.updateMany({
+        where: {
+          status: "PROCESSING",
+        },
+        data: {
+          status: "PENDING",
+          transcriptionProgress: 0,
+        },
+      });
+
+      // Find all recordings that need processing
+      const pendingRecordings = await prisma.audioRecording.findMany({
+        where: {
+          status: "PENDING",
+        },
+        select: {
+          id: true,
+          filePath: true,
+        },
+      });
+
+      // Add them to the queue
+      for (const recording of pendingRecordings) {
+        this.add({
+          recordingId: recording.id,
+          filePath: recording.filePath,
+        });
+      }
+
+      this.initialized = true;
+      console.log(
+        `Transcription queue initialized. (reset ${numProcessing} interrupted jobs, queued ${pendingRecordings.length} jobs)`,
+      );
+    } catch (error) {
+      console.error("Failed to initialize transcription queue:", error);
     }
   }
 
@@ -75,13 +124,14 @@ class TranscriptionQueue {
       });
 
       // Transcribe using OpenAI Whisper
-      const transcription = await this.transcribeWithOpenAI(processedFilePath);
+      const whisperResponse = await this.transcribeWithOpenAI(processedFilePath);
 
       // Save transcription to database
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
         data: {
-          transcription,
+          transcription: whisperResponse.text,
+          whisperData: JSON.stringify(whisperResponse),
           status: "COMPLETED",
           transcriptionProgress: 100,
           transcriptionError: null,
@@ -105,18 +155,19 @@ class TranscriptionQueue {
   private async getAudioDuration(filePath: string): Promise<number> {
     try {
       const fullPath = join(process.cwd(), filePath);
-      const { stdout } = await execa("ffmpeg", ["-i", fullPath, "-f", "null", "-"], {
-        stderr: "pipe",
-        reject: false,
-      });
+      const { stdout } = await execa("ffprobe", [
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        fullPath,
+      ]);
 
-      // Parse duration from ffmpeg output
-      const durationMatch = stdout.match(/Duration: (\d{2}):(\d{2}):(\d{2}\.\d{2})/);
-      if (durationMatch) {
-        const hours = parseInt(durationMatch[1]);
-        const minutes = parseInt(durationMatch[2]);
-        const seconds = parseFloat(durationMatch[3]);
-        return hours * 3600 + minutes * 60 + seconds;
+      const duration = parseFloat(stdout);
+      if (!Number.isNaN(duration)) {
+        return duration;
       }
 
       return 0;
@@ -132,18 +183,19 @@ class TranscriptionQueue {
     return filePath;
   }
 
-  private async transcribeWithOpenAI(filePath: string): Promise<string> {
+  private async transcribeWithOpenAI(filePath: string): Promise<WhisperVerboseResponse> {
     const fullPath = join(process.cwd(), filePath);
 
     try {
       const transcription = await openai.audio.transcriptions.create({
         file: createReadStream(fullPath),
         model: "whisper-1",
-        language: "ja", // You can make this configurable
-        response_format: "text",
+        language: "ja", // TODO: make this configurable
+        response_format: "verbose_json",
+        timestamp_granularities: ["word"],
       });
 
-      return transcription;
+      return transcription as WhisperVerboseResponse;
     } catch (error) {
       console.error("OpenAI transcription error:", error);
       throw new Error(`${error instanceof Error ? error.message : "Unknown error"}`);
@@ -153,6 +205,11 @@ class TranscriptionQueue {
 
 // Create singleton instance
 export const transcriptionQueue = new TranscriptionQueue();
+
+// Helper function to initialize the transcription queue
+export async function initializeTranscriptionQueue() {
+  return transcriptionQueue.initialize();
+}
 
 // Helper function to add recordings to the queue
 export async function queueTranscription(recordingId: string) {
@@ -164,7 +221,7 @@ export async function queueTranscription(recordingId: string) {
     throw new Error("Recording not found");
   }
 
-  await transcriptionQueue.add({
+  transcriptionQueue.add({
     recordingId: recording.id,
     filePath: recording.filePath,
   });
