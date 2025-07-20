@@ -5,7 +5,7 @@ import { Ban, CheckCircle, MoreHorizontal, Search, Shield } from "lucide-react";
 import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,11 +15,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  useListUsers,
   useBanUserMutation,
-  useUnbanUserMutation,
+  useListUsers,
   useRemoveUserMutation,
   useSetRoleMutation,
+  useUnbanUserMutation,
 } from "@/hooks/auth-admin";
 
 export function UserManagement() {
@@ -32,24 +32,27 @@ export function UserManagement() {
   const deleteUserMutation = useRemoveUserMutation();
   const updateUserMutation = useSetRoleMutation();
 
-  const banUser = async (userId: string, reason: string) => {
-    await banUserMutation.mutateAsync({
-      userId,
-      reason,
-    });
+  const banUserHandler = (userId: string) => async () => {
+    const reason = prompt("Reason for ban:");
+    if (reason) {
+      await banUserMutation.mutateAsync({
+        userId,
+        reason,
+      });
+    }
   };
 
-  const unbanUser = async (userId: string) => {
+  const unbanUserHandler = (userId: string) => async () => {
     await unbanUserMutation.mutateAsync({ userId });
   };
 
-  const deleteUser = async (userId: string) => {
+  const deleteUserHandler = (userId: string) => async () => {
     if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       await deleteUserMutation.mutateAsync({ userId });
     }
   };
 
-  const toggleAdmin = async (userId: string, currentRole: string | null) => {
+  const toggleAdminHandler = (userId: string, currentRole: string | null) => async () => {
     await updateUserMutation.mutateAsync({
       userId,
       role: currentRole === "admin" ? "user" : "admin",
@@ -58,25 +61,22 @@ export function UserManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search users..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 w-[300px]"
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>Users</CardTitle>
           <CardDescription>Manage user accounts, roles, and permissions.</CardDescription>
+          <CardAction>
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search users..."
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8 w-[300px]"
+                />
+              </div>
+            </div>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <Table>
@@ -161,22 +161,15 @@ export function UserManagement() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => toggleAdmin(user.id, user.role)}>
+                          <DropdownMenuItem onClick={toggleAdminHandler(user.id, user.role)}>
                             {user.role === "admin" ? "Remove Admin" : "Make Admin"}
                           </DropdownMenuItem>
                           {user.banned ? (
-                            <DropdownMenuItem onClick={() => unbanUser(user.id)}>Unban User</DropdownMenuItem>
+                            <DropdownMenuItem onClick={unbanUserHandler(user.id)}>Unban User</DropdownMenuItem>
                           ) : (
-                            <DropdownMenuItem
-                              onClick={() => {
-                                const reason = prompt("Reason for ban:");
-                                if (reason) banUser(user.id, reason);
-                              }}
-                            >
-                              Ban User
-                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={banUserHandler(user.id)}>Ban User</DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => deleteUser(user.id)} className="text-destructive">
+                          <DropdownMenuItem onClick={deleteUserHandler(user.id)} className="text-destructive">
                             Delete User
                           </DropdownMenuItem>
                         </DropdownMenuContent>

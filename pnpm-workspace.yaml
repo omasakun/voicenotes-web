@@ -1,4 +1,5 @@
 onlyBuiltDependencies:
+  - '@ffmpeg-installer/linux-x64'
   - '@prisma/client'
   - '@prisma/engines'
   - '@tailwindcss/oxide'

@@ -22,8 +22,8 @@ export function useListUsers(options: { search?: string; limit?: number; offset?
         },
       });
 
-      let users = response.data?.users || [];
-      let total = response.data?.total || 0;
+      const users = response.data?.users || [];
+      const total = response.data?.total || 0;
 
       return { users, total };
     },

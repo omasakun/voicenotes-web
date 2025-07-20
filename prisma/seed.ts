@@ -7,7 +7,7 @@ async function main() {
   if (userCount === 0) {
     console.log("No users found. Creating default admin user...");
 
-    const user = await auth.api.createUser({
+    await auth.api.createUser({
       body: {
         email: "admin@example.com",
         name: "Admin User",

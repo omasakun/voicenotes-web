@@ -14,9 +14,18 @@
     "lineWidth": 120
   },
   "linter": {
-    "enabled": false,
+    "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off"
+      },
+      "a11y": {
+        "useMediaCaption": "off"
+      }
     }
   },
   "javascript": {

@@ -2,6 +2,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Inconsolata, Noto_Sans_JP } from "next/font/google";
+import { Navigation } from "@/components/navigation";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/client";
@@ -32,7 +33,8 @@ export default function RootLayout({
     <html lang="ja">
       <body className={cn(notoSansJP.variable, inconsolata.variable, "bg-gradient-to-br from-blue-50 to-indigo-100")}>
         <TRPCReactProvider>
-          {children}
+          <Navigation />
+          <main className="min-h-screen">{children}</main>
           <Toaster />
         </TRPCReactProvider>
       </body>

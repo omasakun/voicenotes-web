@@ -1,16 +1,17 @@
 "use client";
 
+import { useMutation } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
-import { useMutation } from "@tanstack/react-query";
 
 export function SignInForm() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export function SignInForm() {
       return data;
     },
     onSuccess: () => {
-      router.push("/dashboard");
+      router.push("/recordings");
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -48,7 +49,7 @@ export function SignInForm() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Welcome Back</CardTitle>
         <CardDescription>Sign in to your account to continue</CardDescription>

@@ -1,6 +1,7 @@
-# secret
+# secret & data
 .env*
 !.env.example
+/uploads/
 
 # generated
 /.next/

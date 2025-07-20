@@ -1,6 +1,5 @@
-import { randomBytes } from "crypto";
 import { prisma } from "./prisma";
-import { randomBase32 } from "./utils";
+import { randomBase32 } from "./utils-server";
 
 // If there are users, we require an invitation
 export async function requiresInvitation() {
@@ -55,7 +54,7 @@ export async function validateInvitation(code: string) {
   return invitation;
 }
 
-export async function useInvitation(code: string): Promise<void> {
+export async function redeemInvitation(code: string): Promise<void> {
   await prisma.$transaction(async (tx) => {
     const invitation = await tx.invitation.findUnique({
       where: { code },

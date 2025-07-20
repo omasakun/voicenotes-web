@@ -1,9 +1,10 @@
 "use client";
 
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,15 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQuery } from "@tanstack/react-query";
 
 export function SignUpForm() {
   const trpc = useTRPC();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [invitationCode, setInvitationCode] = useState(searchParams.get("code") || "");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
 
   const { data: invitationValidation, isLoading: isValidatingInvitation } = useQuery(
@@ -42,8 +40,8 @@ export function SignUpForm() {
     },
     onSuccess: () => {
       // TODO: why router.push() does not work here?
-      // router.push("/dashboard");
-      location.href = "/dashboard";
+      // router.push("/recordings");
+      location.href = "/recordings";
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -101,7 +99,7 @@ export function SignUpForm() {
   }, [invitationValidation]);
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create Account</CardTitle>
         <CardDescription>

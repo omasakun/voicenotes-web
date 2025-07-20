@@ -3,9 +3,11 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
-import { requiresInvitation, useInvitation, validateInvitation } from "./invitations";
+import { redeemInvitation, requiresInvitation, validateInvitation } from "./invitations";
 import { prisma } from "./prisma";
 
+export type Session = (typeof auth.$Infer.Session)["session"];
+export type User = (typeof auth.$Infer.Session)["user"];
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "sqlite",
@@ -57,7 +59,8 @@ export const auth = betterAuth({
           }
 
           // Mark invitation as used
-          await useInvitation(invitationCode);
+          // TODO: use prisma transaction to ensure atomicity
+          await redeemInvitation(invitationCode);
 
           return {
             data: {

@@ -25,9 +25,10 @@ model User {
   accounts      Account[]
 
   inviterId       String?
-  inviter         User?        @relation("Invitations", fields: [inviterId], references: [id], onDelete: Restrict)
-  invitee         User[]       @relation("Invitations")
-  sentInvitations Invitation[] @relation("SentInvitations")
+  inviter         User?            @relation("Invitations", fields: [inviterId], references: [id], onDelete: Restrict)
+  invitee         User[]           @relation("Invitations")
+  sentInvitations Invitation[]     @relation("SentInvitations")
+  audioRecordings AudioRecording[]
 
   @@unique([email])
   @@map("user")
@@ -94,4 +95,41 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+model AudioRecording {
+  id           String          @id @default(cuid())
+  title        String?
+  originalName String // User's original filename
+  filePath     String // Relative path: uploads/user-id/cuid.ext
+  fileSize     Int
+  duration     Float? // Duration in seconds
+  mimeType     String
+  status       RecordingStatus @default(PENDING)
+
+  // Transcription fields
+  transcription         String?
+  transcriptionProgress Float   @default(0) // 0-100
+  transcriptionError    String?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("audio_recording")
+}
+
+enum RecordingStatus {
+  PENDING // Just uploaded, waiting for processing
+  PROCESSING // Currently being transcribed
+  COMPLETED // Transcription completed successfully
+  FAILED // Transcription failed
+
+  @@map("recording_status")
 }
