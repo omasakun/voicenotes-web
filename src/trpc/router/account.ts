@@ -1,17 +1,8 @@
-import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { sum } from "@/lib/utils";
 import { createTRPCRouter, userProcedure } from "../init";
 
 export const accountRouter = createTRPCRouter({
-  updateName: userProcedure.input(z.object({ name: z.string().min(1).max(100) })).mutation(async ({ ctx, input }) => {
-    const userId = ctx.user.id;
-    await prisma.user.update({
-      where: { id: userId },
-      data: { name: input.name },
-    });
-    return { success: true };
-  }),
   stats: userProcedure.query(async ({ ctx }) => {
     const stats = await prisma.audioRecording.groupBy({
       by: ["status"],

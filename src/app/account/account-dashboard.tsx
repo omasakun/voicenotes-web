@@ -1,16 +1,19 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Clock, FileAudio, HardDrive, type LucideIcon, Settings, UserIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, Clock, FileAudio, HardDrive, type LucideIcon, Settings, UserIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { MyInvitationsCard } from "@/components/invitations";
 import { PageHeader } from "@/components/page-header";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import type { User } from "@/lib/auth";
+import { authClient } from "@/lib/auth-client";
 import { formatDate, formatDuration, formatFileSize } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 
@@ -100,26 +103,19 @@ export function AccountDashboard({ user }: { user: User }) {
   );
 }
 function AccountInfoCard({ user }: { user: User }) {
-  const trpc = useTRPC();
-
-  const [name, setName] = useState(user.name);
-
-  const updateNameMutation = useMutation(trpc.account.updateName.mutationOptions());
-
   const editNameHandler = async (name: string) => {
     const trimmedName = name.trim();
     if (!trimmedName || trimmedName === user.name) {
       return;
     }
 
-    try {
-      await updateNameMutation.mutateAsync({ name: trimmedName });
-      toast.success("Name updated successfully");
-      setName(trimmedName);
-    } catch (error) {
+    const { error } = await authClient.updateUser({ name: trimmedName });
+    if (error) {
       console.error("Failed to update name:", error);
       toast.error("Failed to update name");
+      return;
     }
+    toast.success("Name updated successfully");
   };
 
   return (
@@ -129,16 +125,102 @@ function AccountInfoCard({ user }: { user: User }) {
           <UserIcon className="h-5 w-5" />
           Account Information
         </CardTitle>
+        <CardAction>
+          <ChangePasswordButton />
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AccountInfoField label="Username" value={name} edit={editNameHandler} />
+          <AccountInfoField label="Username" value={user.name} edit={editNameHandler} />
           <AccountInfoField label="Email" value={user.email} />
           <AccountInfoField label="Role" value={user.role || "user"} />
           <AccountInfoField label="Member since" value={formatDate(new Date(user.createdAt))} />
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ChangePasswordButton() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+        Change Password
+      </Button>
+      <ChangePasswordDialog open={dialogOpen} setOpen={setDialogOpen} />
+    </>
+  );
+}
+
+function ChangePasswordDialog({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const changePasswordHandler = async () => {
+    if (newPassword !== confirmPassword) {
+      setErrorMessage("Passwords do not match");
+      return;
+    }
+
+    setIsSaving(true);
+    setErrorMessage(null);
+
+    const { error } = await authClient.changePassword({
+      currentPassword,
+      newPassword,
+      revokeOtherSessions: true,
+    });
+
+    if (error) {
+      console.error("Failed to update password:", error);
+      setErrorMessage(`Failed to update password: ${error.message}`);
+      return;
+    }
+
+    setOpen(false);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setIsSaving(false);
+    setErrorMessage(null);
+    toast.success("Password updated successfully");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Change Password</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Input type="password" placeholder="Current Password" onChange={(e) => setCurrentPassword(e.target.value)} />
+          <Input type="password" placeholder="New Password" onChange={(e) => setNewPassword(e.target.value)} />
+          <Input type="password" placeholder="Confirm Password" onChange={(e) => setConfirmPassword(e.target.value)} />
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
+        </div>
+        <DialogFooter>
+          <Button
+            variant="default"
+            onClick={changePasswordHandler}
+            disabled={!newPassword || !confirmPassword || isSaving}
+          >
+            {isSaving ? "Changing..." : "Change Password"}
+          </Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -154,14 +236,13 @@ function AccountInfoField({ label, value, edit }: AccountInfoFieldProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
+      setIsSaving(true);
       await edit?.(newValue);
       setIsEditing(false);
-    } catch {
-      toast.error("Failed to update value");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleCancel = () => {
@@ -173,7 +254,7 @@ function AccountInfoField({ label, value, edit }: AccountInfoFieldProps) {
     <div>
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
       {isEditing ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" key="edit-field">
           <Input
             type="text"
             defaultValue={value}
@@ -192,7 +273,7 @@ function AccountInfoField({ label, value, edit }: AccountInfoFieldProps) {
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" key="display-field">
           <span className="text-lg">{value}</span>
           {edit && (
             <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
