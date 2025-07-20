@@ -1,10 +1,18 @@
 "use client";
 
-import { FileAudio, LogOut, type LucideIcon, Settings, UserIcon } from "lucide-react";
+import { FileAudio, LogOut, type LucideIcon, Menu, Settings, UserIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 
 const targetPaths = ["/account", "/dashboard", "/recordings"];
@@ -48,7 +56,7 @@ export function Navigation() {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <span className="text-sm text-gray-700">{user?.name || ""}</span>
             {user?.role === "admin" && (
               <Badge variant="outline" className="text-xs">
@@ -56,10 +64,31 @@ export function Navigation() {
               </Badge>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut}>
+          <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
           </Button>
+
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent collisionPadding={8}>
+                <DropdownMenuLabel>Navigation</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push("/recordings")}>Recordings</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/account")}>Account</DropdownMenuItem>
+                {user?.role === "admin" && (
+                  <DropdownMenuItem onClick={() => router.push("/dashboard")}>Admin</DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </nav>
