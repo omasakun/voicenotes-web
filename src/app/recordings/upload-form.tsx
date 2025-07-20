@@ -2,14 +2,15 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-// Helper for posting with progress
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { formatFileSize, postWithProgress } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
+import { AudioRecorder } from "./audio-recorder";
 
 export function UploadForm() {
   const queryClient = useQueryClient();
@@ -20,6 +21,11 @@ export function UploadForm() {
   const [title, setTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const handleRecordingComplete = (recordedFile: File, recordedTitle: string) => {
+    setFile(recordedFile);
+    setTitle(recordedTitle);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -82,23 +88,36 @@ export function UploadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="audio-file">Audio File</Label>
-        <Input
-          id="audio-file"
-          type="file"
-          accept="audio/*"
-          onChange={handleFileChange}
-          ref={fileInputRef}
-          disabled={uploading}
-          className="cursor-pointer"
-        />
-        {file && (
-          <p className="text-sm text-muted-foreground">
-            Selected: {file.name} ({formatFileSize(file.size)})
-          </p>
-        )}
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1">
+          <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={uploading} />
+        </div>
+
+        <div className="flex-1 space-y-2">
+          <Label htmlFor="audio-file">Or Upload Audio File</Label>
+          <div className="flex items-center space-x-2">
+            <Button asChild className="cursor-pointer" disabled={uploading}>
+              <label htmlFor="audio-file">{uploading ? "Uploading..." : "Select File"}</label>
+            </Button>
+            <Input
+              id="audio-file"
+              type="file"
+              accept="audio/*"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              disabled={uploading}
+              className="hidden"
+            />
+            {file && (
+              <p className="text-sm text-muted-foreground">
+                {file.name} ({formatFileSize(file.size)})
+              </p>
+            )}
+          </div>
+        </div>
       </div>
+
+      <Separator />
 
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
