@@ -116,7 +116,7 @@ export function UploadForm() {
         <div className="space-y-2">
           <Label>Upload Progress</Label>
           <Progress value={uploadProgress} className="w-full" />
-          <p className="text-sm text-muted-foreground">{uploadProgress}% uploaded</p>
+          <p className="text-sm text-muted-foreground">{uploadProgress.toFixed(2)}% uploaded</p>
         </div>
       )}
 

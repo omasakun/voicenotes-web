@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { UserManagement } from "@/app/dashboard/user-management";
 import { AllInvitationsCard } from "@/components/invitations";
 import { PageHeader } from "@/components/page-header";
@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   });
 
   if (session?.user?.role !== "admin") {
-    return notFound();
+    return redirect("/signin");
   }
 
   return (

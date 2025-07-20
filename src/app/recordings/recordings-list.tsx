@@ -1,6 +1,5 @@
 "use client";
 
-import type { $Enums } from "@prisma/client";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, Download, FileAudio, Play, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";

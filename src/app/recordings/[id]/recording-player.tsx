@@ -1,5 +1,6 @@
 "use client";
 
+import type { AudioRecording } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -12,10 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Slider } from "@/components/ui/slider";
 import { formatDate, formatFileSize, formatPlaybackTime, getStatusColor, getStatusText } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
-import type { AudioRecording } from "@prisma/client";
-import { Slider } from "@/components/ui/slider";
 
 interface RecordingPlayerProps {
   recording: AudioRecording;

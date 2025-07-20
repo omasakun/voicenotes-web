@@ -1,13 +1,21 @@
-import { SignUpForm } from "@/app/signup/form";
+import Link from "next/link";
 import { Suspense } from "react";
+import { SignUpForm } from "@/app/signup/form";
+import { Button } from "@/components/ui/button";
 
 export default function SignUpPage() {
   // TODO; proper useSearchParams usage
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4">
+      <h1 className="text-2xl font-bold mb-6">Voicenotes</h1>
       <Suspense>
         <SignUpForm />
       </Suspense>
+      <Link href="/" className="mt-6 w-full flex justify-center">
+        <Button variant="outline" size="sm">
+          Back to Top Page
+        </Button>
+      </Link>
     </div>
   );
 }

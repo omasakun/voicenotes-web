@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Clock, FileAudio, HardDrive, type LucideIcon, Settings, UserIcon } from "lucide-react";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { MyInvitationsCard } from "@/components/invitations";
 import { PageHeader } from "@/components/page-header";
@@ -102,6 +102,8 @@ export function AccountDashboard({ user }: { user: User }) {
 function AccountInfoCard({ user }: { user: User }) {
   const trpc = useTRPC();
 
+  const [name, setName] = useState(user.name);
+
   const updateNameMutation = useMutation(trpc.account.updateName.mutationOptions());
 
   const editNameHandler = async (name: string) => {
@@ -111,8 +113,9 @@ function AccountInfoCard({ user }: { user: User }) {
     }
 
     try {
-      await updateNameMutation.mutateAsync({ name });
+      await updateNameMutation.mutateAsync({ name: trimmedName });
       toast.success("Name updated successfully");
+      setName(trimmedName);
     } catch (error) {
       console.error("Failed to update name:", error);
       toast.error("Failed to update name");
@@ -129,7 +132,7 @@ function AccountInfoCard({ user }: { user: User }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <AccountInfoField label="Username" value={user.name} edit={editNameHandler} />
+          <AccountInfoField label="Username" value={name} edit={editNameHandler} />
           <AccountInfoField label="Email" value={user.email} />
           <AccountInfoField label="Role" value={user.role || "user"} />
           <AccountInfoField label="Member since" value={formatDate(new Date(user.createdAt))} />

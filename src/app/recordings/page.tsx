@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
@@ -12,7 +12,7 @@ export default async function RecordingsPage() {
   });
 
   if (!session?.user) {
-    return notFound();
+    return redirect("/signin");
   }
 
   return (

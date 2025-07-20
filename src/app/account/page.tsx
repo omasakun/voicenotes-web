@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AccountDashboard } from "./account-dashboard";
 
@@ -9,7 +9,7 @@ export default async function AccountPage() {
   });
 
   if (!session?.user) {
-    return notFound();
+    return redirect("/signin");
   }
 
   return (

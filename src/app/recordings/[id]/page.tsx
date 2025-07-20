@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { RecordingPlayer } from "./recording-player";
@@ -17,7 +17,7 @@ export default async function RecordingPage({ params }: PageProps) {
   });
 
   if (!session?.user) {
-    return notFound();
+    return redirect("/signin");
   }
 
   const recording = await prisma.audioRecording.findFirst({

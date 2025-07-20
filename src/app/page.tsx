@@ -12,12 +12,12 @@ export default function HomePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Link href="/signin" className="w-full">
+            <Link href="/signin" className="block w-full">
               <Button className="w-full" size="lg">
                 Sign In
               </Button>
             </Link>
-            <Link href="/signup" className="w-full">
+            <Link href="/signup" className="block w-full">
               <Button variant="outline" className="w-full" size="lg">
                 Join with Invitation
               </Button>

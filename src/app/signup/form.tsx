@@ -102,11 +102,7 @@ export function SignUpForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create Account</CardTitle>
-        <CardDescription>
-          {invitationValidation?.valid && invitationValidation.invitation?.inviterName
-            ? `You've been invited by ${invitationValidation.invitation.inviterName}`
-            : "Sign up to get started"}
-        </CardDescription>
+        <CardDescription>Sign up to get started</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,7 +129,7 @@ export function SignUpForm() {
                 )}
                 <AlertDescription>
                   {invitationValidation.valid
-                    ? `You are invited by ${invitationValidation.invitation?.inviterName}!`
+                    ? `You've been invited by ${invitationValidation.invitation?.inviterName}!`
                     : invitationValidation.error}
                 </AlertDescription>
               </Alert>
@@ -141,7 +137,7 @@ export function SignUpForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Name</Label>
             <Input id="name" name="name" type="text" placeholder="Enter your name" required />
           </div>
 
