@@ -93,7 +93,7 @@ export function UploadForm() {
           <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={uploading} />
         </div>
 
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-4">
           <Label htmlFor="audio-file">Or Upload Audio File</Label>
           <div className="flex items-center space-x-2">
             <Button asChild className="cursor-pointer" disabled={uploading}>

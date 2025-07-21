@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useThrottleFn } from "react-use";
 
 interface UsePlayerOptions {
   src: string;
@@ -52,17 +53,21 @@ export function usePlayer({ src, initialDuration }: UsePlayerOptions) {
     };
   }, []);
 
-  // Handle seeking
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (seekTime !== null && audio) {
-      audio.currentTime = seekTime;
-      setCurrentTime(seekTime);
-      setSeekTime(null);
-      audio.play();
-      setIsPlaying(true);
-    }
-  }, [seekTime]);
+  // Throttled seek
+  useThrottleFn(
+    (seekTime) => {
+      const audio = audioRef.current;
+      if (seekTime !== null && audio) {
+        audio.currentTime = seekTime;
+        setCurrentTime(seekTime);
+        setSeekTime(null);
+        audio.play();
+        setIsPlaying(true);
+      }
+    },
+    100,
+    [seekTime],
+  );
 
   const play = useCallback(() => {
     const audio = audioRef.current;
