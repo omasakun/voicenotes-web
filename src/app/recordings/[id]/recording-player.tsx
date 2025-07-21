@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useIntersection } from "react-use";
 import { toast } from "sonner";
 import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,16 @@ interface RecordingPlayerProps {
 export function RecordingPlayer({ recording }: RecordingPlayerProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const [seekTime, setSeekTime] = useState<number | null>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  // Use intersection observer to detect when the main player is out of view
+  const intersection = useIntersection(playerRef, {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.1,
+  });
+
+  const showStickyPlayer = intersection && !intersection.isIntersecting;
 
   const handleSeek = (time: number) => {
     setSeekTime(time);
@@ -32,8 +43,24 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
 
   return (
     <div className="space-y-6">
+      {/* Sticky Player - shown when scrolling */}
+      {showStickyPlayer && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
+          <div className="container mx-auto px-4 py-2">
+            <AudioPlayer
+              src={`/api/audio/${recording.id}`}
+              duration={recording.duration}
+              onTimeUpdate={setCurrentTime}
+              seekTime={seekTime}
+              onSeekComplete={() => setSeekTime(null)}
+              compact={true}
+            />
+          </div>
+        </div>
+      )}
+
       <RecordingPlayerHeader recording={recording} />
-      <Card>
+      <Card ref={playerRef}>
         <CardHeader>
           <RecordingInfo recording={recording} />
         </CardHeader>
@@ -44,6 +71,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
             onTimeUpdate={setCurrentTime}
             seekTime={seekTime}
             onSeekComplete={() => setSeekTime(null)}
+            compact={false}
           />
           {recording.status === "PROCESSING" && <TranscriptionProgress progress={recording.transcriptionProgress} />}
           {recording.status === "FAILED" && <TranscriptionError error={recording.transcriptionError} />}
@@ -164,12 +192,14 @@ function AudioPlayer({
   onTimeUpdate,
   seekTime,
   onSeekComplete,
+  compact = false,
 }: {
   src: string;
   duration: number | null;
   onTimeUpdate: (time: number) => void;
   seekTime: number | null;
   onSeekComplete: () => void;
+  compact?: boolean;
 }) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -201,10 +231,14 @@ function AudioPlayer({
 
   // Handle seeking from external source
   useEffect(() => {
-    if (seekTime !== null && audioRef.current) {
-      audioRef.current.currentTime = seekTime;
+    const audio = audioRef.current;
+    if (seekTime !== null && audio) {
+      audio.currentTime = seekTime;
       setCurrentTime(seekTime);
       onSeekComplete();
+
+      audio.play();
+      setIsPlaying(true);
     }
   }, [seekTime, onSeekComplete]);
 
@@ -239,6 +273,40 @@ function AudioPlayer({
     setIsPlaying(false);
     audio.pause();
   };
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-3">
+        <audio
+          ref={audioRef}
+          src={src}
+          onLoadedMetadata={() => {
+            if (audioRef.current) {
+              setDuration(audioRef.current.duration);
+            }
+          }}
+        />
+        <Button onClick={togglePlay} size="sm">
+          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+        </Button>
+        <Button variant="outline" size="sm" onClick={resetAudio}>
+          <RotateCcw className="h-3 w-3" />
+        </Button>
+        <div className="flex-1 flex items-center gap-3">
+          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(currentTime)}</span>
+          <Slider
+            min={0}
+            max={duration || 0}
+            step={0.1}
+            value={[currentTime]}
+            onValueChange={handleSeek}
+            className="flex-1"
+          />
+          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(duration)}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

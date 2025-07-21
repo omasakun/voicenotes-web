@@ -118,49 +118,53 @@ export function InteractiveTranscription({
               `}
               onClick={() => onSeek(sentence.start)}
             >
-              <div className="grid">
-                <div className="flex flex-wrap col-1 row-1 text-transparent select-none">
-                  {sentence.words.map((word) => {
-                    const isHighlighted = word.start <= currentTime && currentTime <= word.end;
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <div className="grid">
+                    <div className="flex flex-wrap col-1 row-1 text-transparent select-none">
+                      {sentence.words.map((word) => {
+                        const isHighlighted = word.start <= currentTime && currentTime <= word.end;
 
-                    return (
-                      <span
-                        key={`word-${word.start}-${word.end}`}
-                        className={cn(
-                          "transition-all duration-100 rounded -mx-1 px-1",
-                          isHighlighted ? "font-semibold bg-blue-300" : "",
-                        )}
-                      >
-                        {word.word}
-                      </span>
-                    );
-                  })}
-                </div>
-                <div className="flex flex-wrap col-1 row-1">
-                  {sentence.words.map((word) => {
-                    const isHighlighted = word.start <= currentTime && currentTime <= word.end;
+                        return (
+                          <span
+                            key={`word-${word.start}-${word.end}`}
+                            className={cn(
+                              "transition-all duration-100 rounded -mx-1 px-1",
+                              isHighlighted ? "font-semibold bg-blue-300" : "",
+                            )}
+                          >
+                            {word.word}
+                          </span>
+                        );
+                      })}
+                    </div>
+                    <div className="flex flex-wrap col-1 row-1">
+                      {sentence.words.map((word) => {
+                        const isHighlighted = word.start <= currentTime && currentTime <= word.end;
 
-                    return (
-                      <button
-                        key={`word-${word.start}-${word.end}`}
-                        type="button"
-                        className={cn(
-                          "transition-all duration-100",
-                          isHighlighted ? "font-semibold text-blue-900" : "",
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSeek(word.start);
-                        }}
-                      >
-                        {word.word}
-                      </button>
-                    );
-                  })}
+                        return (
+                          <button
+                            key={`word-${word.start}-${word.end}`}
+                            type="button"
+                            className={cn(
+                              "transition-all duration-100",
+                              isHighlighted ? "font-semibold text-blue-900" : "",
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSeek(word.start);
+                            }}
+                          >
+                            {word.word}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="text-xs text-gray-500 mt-2">
-                {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
+                <div className="text-xs text-gray-500 whitespace-nowrap">
+                  {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
+                </div>
               </div>
             </button>
           ))}
