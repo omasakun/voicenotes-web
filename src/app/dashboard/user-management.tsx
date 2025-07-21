@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   useBanUserMutation,
+  useImpersonateUserMutation,
   useListUsers,
   useRemoveUserMutation,
   useSetRoleMutation,
@@ -32,6 +33,7 @@ export function UserManagement() {
   const unbanUserMutation = useUnbanUserMutation();
   const deleteUserMutation = useRemoveUserMutation();
   const updateUserMutation = useSetRoleMutation();
+  const impersonateUserMutation = useImpersonateUserMutation();
 
   const banUserHandler = (userId: string) => async () => {
     const reason = prompt("Reason for ban:");
@@ -58,6 +60,12 @@ export function UserManagement() {
       userId,
       role: currentRole === "admin" ? "user" : "admin",
     });
+  };
+
+  const impersonateUserHandler = (userId: string, userName: string) => async () => {
+    if (confirm(`Are you sure you want to impersonate user "${userName}"? You will be logged in as this user.`)) {
+      await impersonateUserMutation.mutateAsync({ userId });
+    }
   };
 
   return (
@@ -164,6 +172,9 @@ export function UserManagement() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={toggleAdminHandler(user.id, user.role)}>
                             {user.role === "admin" ? "Remove Admin" : "Make Admin"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={impersonateUserHandler(user.id, user.name)}>
+                            Impersonate User
                           </DropdownMenuItem>
                           {user.banned ? (
                             <DropdownMenuItem onClick={unbanUserHandler(user.id)}>Unban User</DropdownMenuItem>

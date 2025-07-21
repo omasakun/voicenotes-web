@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { startup } from "@/lib/startup";
-import { createTRPCRouter, userProcedure, adminProcedure } from "../init";
 import { transcriptionQueue } from "@/lib/transcription";
+import { adminProcedure, createTRPCRouter, userProcedure } from "../init";
 
 export const recordingsRouter = createTRPCRouter({
   list: userProcedure

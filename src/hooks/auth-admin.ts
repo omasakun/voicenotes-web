@@ -95,3 +95,31 @@ export function useSetRoleMutation() {
     },
   });
 }
+
+export function useImpersonateUserMutation() {
+  return useMutation({
+    mutationFn: async ({ userId }: { userId: string }) => {
+      const response = await authClient.admin.impersonateUser({
+        userId,
+      });
+      return response;
+    },
+    onSuccess: () => {
+      // Refresh the page to reload the session with impersonation
+      window.location.reload();
+    },
+  });
+}
+
+export function useStopImpersonatingMutation() {
+  return useMutation({
+    mutationFn: async () => {
+      const response = await authClient.admin.stopImpersonating();
+      return response;
+    },
+    onSuccess: () => {
+      // Refresh the page to reload the session without impersonation
+      window.location.reload();
+    },
+  });
+}

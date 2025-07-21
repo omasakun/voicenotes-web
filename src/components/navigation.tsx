@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useStopImpersonatingMutation } from "@/hooks/auth-admin";
 import { authClient } from "@/lib/auth-client";
 
 const targetPaths = ["/account", "/dashboard", "/recordings"];
@@ -22,6 +23,9 @@ export function Navigation() {
   const pathname = usePathname();
   const { data: session } = authClient.useSession();
   const user = session?.user;
+  const stopImpersonatingMutation = useStopImpersonatingMutation();
+
+  const isImpersonating = session?.session?.impersonatedBy;
 
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -31,6 +35,10 @@ export function Navigation() {
         },
       },
     });
+  };
+
+  const handleStopImpersonating = async () => {
+    await stopImpersonatingMutation.mutateAsync();
   };
 
   const isActive = (path: string) => pathname === path;
@@ -63,11 +71,22 @@ export function Navigation() {
                 Admin
               </Badge>
             )}
+            {isImpersonating && (
+              <Badge variant="destructive" className="text-xs">
+                Impersonating
+              </Badge>
+            )}
           </div>
-          <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          {isImpersonating ? (
+            <Button variant="outline" size="sm" onClick={handleStopImpersonating}>
+              Stop Impersonating
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          )}
 
           <div className="md:hidden">
             <DropdownMenu>
@@ -85,7 +104,14 @@ export function Navigation() {
                   <DropdownMenuItem onClick={() => router.push("/dashboard")}>Admin</DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                {isImpersonating ? (
+                  <>
+                    <DropdownMenuLabel className="text-destructive">Impersonating</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={handleStopImpersonating}>Stop Impersonating</DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={handleSignOut}>Sign Out</DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
