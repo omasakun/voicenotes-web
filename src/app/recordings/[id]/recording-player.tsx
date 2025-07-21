@@ -28,8 +28,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
   const [seekTime, setSeekTime] = useState<number | null>(null);
   const playerRef = useRef<HTMLDivElement>(null);
 
-  // Use intersection observer to detect when the main player is out of view
-  const intersection = useIntersection(playerRef, {
+  const intersection = useIntersection(playerRef as any, {
     root: null,
     rootMargin: "0px",
     threshold: 0.1,
@@ -43,7 +42,6 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
 
   return (
     <div className="space-y-6">
-      {/* Sticky Player - shown when scrolling */}
       {showStickyPlayer && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
           <div className="container mx-auto px-4 py-2">
