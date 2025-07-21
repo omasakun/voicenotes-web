@@ -4,7 +4,7 @@ import type { AudioRecording } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useIntersection } from "react-use";
 import { toast } from "sonner";
 import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
@@ -18,15 +18,18 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import { formatDate, formatFileSize, formatPlaybackTime, getStatusColor, getStatusText } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
+import { type Player, usePlayer } from "./use-audio-player";
 
 interface RecordingPlayerProps {
   recording: AudioRecording;
 }
 
 export function RecordingPlayer({ recording }: RecordingPlayerProps) {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [seekTime, setSeekTime] = useState<number | null>(null);
   const playerRef = useRef<HTMLDivElement>(null);
+  const audioPlayer = usePlayer({
+    src: `/api/audio/${recording.id}`,
+    initialDuration: recording.duration,
+  });
 
   const intersection = useIntersection(playerRef as any, {
     root: null,
@@ -36,23 +39,12 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
 
   const showStickyPlayer = intersection && !intersection.isIntersecting;
 
-  const handleSeek = (time: number) => {
-    setSeekTime(time);
-  };
-
   return (
     <div className="space-y-6">
       {showStickyPlayer && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
           <div className="container mx-auto px-4 py-2">
-            <AudioPlayer
-              src={`/api/audio/${recording.id}`}
-              duration={recording.duration}
-              onTimeUpdate={setCurrentTime}
-              seekTime={seekTime}
-              onSeekComplete={() => setSeekTime(null)}
-              compact={true}
-            />
+            <AudioPlayer audioPlayer={audioPlayer} compact={true} />
           </div>
         </div>
       )}
@@ -63,14 +55,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
           <RecordingInfo recording={recording} />
         </CardHeader>
         <CardContent className="space-y-4">
-          <AudioPlayer
-            src={`/api/audio/${recording.id}`}
-            duration={recording.duration}
-            onTimeUpdate={setCurrentTime}
-            seekTime={seekTime}
-            onSeekComplete={() => setSeekTime(null)}
-            compact={false}
-          />
+          <AudioPlayer audioPlayer={audioPlayer} compact={false} />
           {recording.status === "PROCESSING" && <TranscriptionProgress progress={recording.transcriptionProgress} />}
           {recording.status === "FAILED" && <TranscriptionError error={recording.transcriptionError} />}
         </CardContent>
@@ -79,8 +64,8 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
         <InteractiveTranscription
           transcription={recording.transcription}
           whisperData={recording.whisperData}
-          currentTime={currentTime}
-          onSeek={handleSeek}
+          currentTime={audioPlayer.currentTime}
+          onSeek={audioPlayer.seek}
         />
       )}
     </div>
@@ -184,110 +169,25 @@ function RecordingInfo({ recording }: { recording: AudioRecording }) {
   );
 }
 
-function AudioPlayer({
-  src,
-  duration: initialDuration,
-  onTimeUpdate,
-  seekTime,
-  onSeekComplete,
-  compact = false,
-}: {
-  src: string;
-  duration: number | null;
-  onTimeUpdate: (time: number) => void;
-  seekTime: number | null;
-  onSeekComplete: () => void;
+type AudioPlayerProps = {
+  audioPlayer: Player;
   compact?: boolean;
-}) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(initialDuration || 0);
+};
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateTime = () => {
-      const time = audio.currentTime;
-      setCurrentTime(time);
-      onTimeUpdate(time);
-    };
-    const updateDuration = () => Number.isFinite(audio.duration) && setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
-
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-    audio.addEventListener("ended", handleEnded);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, [onTimeUpdate]);
-
-  // Handle seeking from external source
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (seekTime !== null && audio) {
-      audio.currentTime = seekTime;
-      setCurrentTime(seekTime);
-      onSeekComplete();
-
-      audio.play();
-      setIsPlaying(true);
-    }
-  }, [seekTime, onSeekComplete]);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
+function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
+  const { isPlaying, currentTime, duration, togglePlay, reset, seek } = audioPlayer;
 
   const handleSeek = ([value]: [number]) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = value;
-    setCurrentTime(value);
-    onTimeUpdate(value);
-  };
-
-  const resetAudio = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = 0;
-    setCurrentTime(0);
-    onTimeUpdate(0);
-    setIsPlaying(false);
-    audio.pause();
+    seek(value);
   };
 
   if (compact) {
     return (
       <div className="flex items-center gap-3">
-        <audio
-          ref={audioRef}
-          src={src}
-          onLoadedMetadata={() => {
-            if (audioRef.current) {
-              setDuration(audioRef.current.duration);
-            }
-          }}
-        />
         <Button onClick={togglePlay} size="sm">
           {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         </Button>
-        <Button variant="outline" size="sm" onClick={resetAudio}>
+        <Button variant="outline" size="sm" onClick={reset}>
           <RotateCcw className="h-3 w-3" />
         </Button>
         <div className="flex-1 flex items-center gap-3">
@@ -308,20 +208,11 @@ function AudioPlayer({
 
   return (
     <div className="space-y-4">
-      <audio
-        ref={audioRef}
-        src={src}
-        onLoadedMetadata={() => {
-          if (audioRef.current) {
-            setDuration(audioRef.current.duration);
-          }
-        }}
-      />
       <div className="flex items-center gap-4">
         <Button onClick={togglePlay} size="lg">
           {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
         </Button>
-        <Button variant="outline" onClick={resetAudio}>
+        <Button variant="outline" onClick={reset}>
           <RotateCcw className="h-4 w-4" />
         </Button>
         <div className="flex-1 space-y-2">
