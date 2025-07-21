@@ -6,8 +6,10 @@
 # generated
 /.next/
 /coverage/
-/node_modules/
 /src/generated/prisma/
+__pycache__/
+node_modules/
+
 
 *.sqlite
 *.tsbuildinfo

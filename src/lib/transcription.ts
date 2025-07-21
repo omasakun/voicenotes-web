@@ -96,23 +96,6 @@ class TranscriptionQueue {
   private async processRecording(job: TranscriptionJob) {
     console.log(`Starting transcription for recording ${job.recordingId}`);
 
-    let lastProgressUpdate = 0;
-
-    const debouncedProgressUpdate = async (progress: number) => {
-      const now = Date.now();
-      if (now - lastProgressUpdate >= PROGRESS_DEBOUNCE_MS || progress >= 100) {
-        lastProgressUpdate = now;
-        try {
-          await prisma.audioRecording.update({
-            where: { id: job.recordingId },
-            data: { transcriptionProgress: Math.round(progress) },
-          });
-        } catch (error) {
-          console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
-        }
-      }
-    };
-
     try {
       // Update status to processing
       await prisma.audioRecording.update({
@@ -132,8 +115,26 @@ class TranscriptionQueue {
         data: { duration },
       });
 
+      let lastProgressUpdate = 0;
+
       // Transcribe using faster-whisper
-      const whisperResponse = await this.transcribeWithFasterWhisper(job.filePath, debouncedProgressUpdate);
+      const fullPath = join(process.cwd(), job.filePath);
+      const whisperResponse = await transcribeWithFasterWhisper(fullPath, {
+        async onProgress(progress: number, _message?: string) {
+          const now = Date.now();
+          if (now - lastProgressUpdate >= PROGRESS_DEBOUNCE_MS || progress >= 100) {
+            lastProgressUpdate = now;
+            try {
+              await prisma.audioRecording.update({
+                where: { id: job.recordingId },
+                data: { transcriptionProgress: Math.round(progress) },
+              });
+            } catch (error) {
+              console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
+            }
+          }
+        },
+      });
 
       // Save transcription to database
       await prisma.audioRecording.update({
@@ -183,23 +184,6 @@ class TranscriptionQueue {
     } catch (error) {
       console.error("Failed to get audio duration:", error);
       return 0;
-    }
-  }
-
-  private async transcribeWithFasterWhisper(
-    filePath: string,
-    onProgress?: (progress: number, message?: string) => void,
-  ): Promise<WhisperVerboseResponse> {
-    try {
-      // Use environment variable defaults
-      const result = await transcribeWithFasterWhisper(filePath, {
-        onProgress,
-      });
-
-      return result;
-    } catch (error) {
-      console.error("Faster Whisper transcription error:", error);
-      throw new Error(`${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 

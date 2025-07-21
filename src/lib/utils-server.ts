@@ -125,3 +125,44 @@ export async function* parseJSONLStream<T>(stream: NodeJS.ReadableStream): Async
     yield JSON.parse(buffer);
   }
 }
+
+// Not spec compliant, but good enough for our use case
+export async function* parseSseResponse(response: Response): AsyncGenerator<{ event: string; data: string }> {
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder("utf-8");
+  let buffer = "";
+
+  if (!reader) {
+    throw new Error("No response body");
+  }
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    while (true) {
+      const delimiterRegex = /(\r\n\r\n|\n\n|\r\r)/g;
+      const match = delimiterRegex.exec(buffer);
+      const delimiterPos = match ? match.index : -1;
+      const delimiterLen = match ? match[0].length : 0;
+      if (delimiterPos === -1) break;
+
+      const rawEvent = buffer.slice(0, delimiterPos).trim();
+      buffer = buffer.slice(delimiterPos + delimiterLen);
+
+      let event = "message";
+      let data = "";
+
+      for (const line of rawEvent.split("\n")) {
+        if (line.startsWith("event:")) {
+          event = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          data += line.slice(5).trim();
+        }
+      }
+
+      yield { event, data };
+    }
+  }
+}

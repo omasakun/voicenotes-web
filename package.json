@@ -1,19 +1,21 @@
 {
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
     "start": "next start",
     "lint": "next lint",
     "format": "biome check --write",
-    "postinstall": "prisma generate --no-engine && pnpm python:setup",
+    "postinstall": "prisma generate --no-engine && npm run whisper:setup",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "auth:generate": "npx @better-auth/cli generate",
-    "python:setup": "cd python && uv sync",
-    "python:test": "cd python && uv run python transcribe.py --help"
+    "whisper:setup": "cd python && uv sync",
+    "whisper:start": "cd python && uv run python server.py",
+    "dev:with-whisper": "concurrently \"npm run whisper:start -- --dev\" \"npm run dev\"",
+    "start:with-whisper": "concurrently \"npm run whisper:start\" \"npm run start\""
   },
   "dependencies": {
     "@better-auth/cli": "^1.2.12",
@@ -65,6 +67,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^9.2.0",
     "lefthook": "^1.12.2",
     "shadcn": "^2.9.2",
     "tailwindcss": "^4",

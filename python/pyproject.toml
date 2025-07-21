@@ -3,7 +3,13 @@ name = "voicenotes-whisper"
 version = "0.1.0"
 description = "Local transcription service using faster-whisper"
 requires-python = ">=3.9"
-dependencies = ["click", "faster-whisper"]
+dependencies = [
+  "click",
+  "faster-whisper",
+  "fastapi",
+  "uvicorn[standard]",
+  "sse-starlette",
+]
 
 [tool.uv]
 dev-dependencies = [
