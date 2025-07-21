@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { UserManagement } from "@/app/dashboard/user-management";
+import { VoiceRecordings } from "@/app/dashboard/voice-recordings";
 import { AllInvitationsCard } from "@/components/invitations";
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,7 +24,8 @@ export default async function DashboardPage() {
         <Tabs defaultValue="invitations" className="space-y-4">
           <TabsList>
             <TabsTrigger value="invitations">Invitations</TabsTrigger>
-            <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="recordings">Recordings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="invitations">
@@ -32,6 +34,10 @@ export default async function DashboardPage() {
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="recordings">
+            <VoiceRecordings />
           </TabsContent>
         </Tabs>
       </div>

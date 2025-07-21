@@ -52,7 +52,7 @@ export function RecordingsList() {
   // Poll for updates if any recording is PROCESSING
   // TODO: server notifications would be better
   useEffect(() => {
-    if (!recordings.some((r) => r.status === "PROCESSING")) return;
+    if (!recordings.some((r) => r.status === "PROCESSING" || r.status === "PENDING")) return;
     const timer = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
     }, 1000);

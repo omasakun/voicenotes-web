@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { startup } from "@/lib/startup";
-import { createTRPCRouter, userProcedure } from "../init";
+import { createTRPCRouter, userProcedure, adminProcedure } from "../init";
+import { transcriptionQueue } from "@/lib/transcription";
 
 export const recordingsRouter = createTRPCRouter({
   list: userProcedure
@@ -101,4 +102,70 @@ export const recordingsRouter = createTRPCRouter({
         },
       });
     }),
+
+  listAll: adminProcedure.query(async () => {
+    return await prisma.audioRecording.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
+
+  reschedule: adminProcedure
+    .input(
+      z.object({
+        recordingId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const recording = await prisma.audioRecording.findUnique({
+        where: { id: input.recordingId },
+      });
+
+      if (!recording) {
+        throw new Error("Recording not found");
+      }
+
+      if (recording.status === "PROCESSING") {
+        throw new Error("Cannot reschedule a recording that is processing");
+      }
+
+      // Update status to PENDING and clear error message
+      await prisma.audioRecording.update({
+        where: { id: input.recordingId },
+        data: {
+          status: "PENDING",
+          transcriptionError: null,
+        },
+      });
+
+      // Update transcription queue
+      await transcriptionQueue.updateQueue();
+
+      return { success: true };
+    }),
+
+  rescheduleAllFailed: adminProcedure.mutation(async () => {
+    const failedRecordings = await prisma.audioRecording.updateMany({
+      where: { status: "FAILED" },
+      data: {
+        status: "PENDING",
+        transcriptionError: null,
+      },
+    });
+
+    // Update transcription queue
+    await transcriptionQueue.updateQueue();
+
+    return failedRecordings.count;
+  }),
 });

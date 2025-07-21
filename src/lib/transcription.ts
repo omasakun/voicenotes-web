@@ -47,31 +47,40 @@ class TranscriptionQueue {
       const numProcessing = 0;
 
       // Find all recordings that need processing
-      const pendingRecordings = await prisma.audioRecording.findMany({
-        where: {
-          status: "PENDING",
-        },
-        select: {
-          id: true,
-          filePath: true,
-        },
-      });
+      const numQueued = await this.updateQueue();
 
-      // Add them to the queue
-      for (const recording of pendingRecordings) {
+      this.initialized = true;
+      console.log(
+        `Transcription queue initialized. (reset ${numProcessing} interrupted jobs, queued ${numQueued} jobs)`,
+      );
+    } catch (error) {
+      console.error("Failed to initialize transcription queue:", error);
+    }
+  }
+
+  async updateQueue() {
+    const pendingRecordings = await prisma.audioRecording.findMany({
+      where: {
+        status: "PENDING",
+      },
+      select: {
+        id: true,
+        filePath: true,
+      },
+    });
+
+    // Add them to the queue
+    let queuedCount = 0;
+    for (const recording of pendingRecordings) {
+      if (!this.queue.some((job) => job.recordingId === recording.id)) {
+        queuedCount++;
         this.add({
           recordingId: recording.id,
           filePath: recording.filePath,
         });
       }
-
-      this.initialized = true;
-      console.log(
-        `Transcription queue initialized. (reset ${numProcessing} interrupted jobs, queued ${pendingRecordings.length} jobs)`,
-      );
-    } catch (error) {
-      console.error("Failed to initialize transcription queue:", error);
     }
+    return queuedCount;
   }
 
   private async processQueue() {
