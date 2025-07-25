@@ -7,6 +7,12 @@ resolution-markers = [
     "python_full_version < '3.10'",
 ]
 
+[manifest]
+members = [
+    "voicenotes-monorepo",
+    "voicenotes-whisper",
+]
+
 [[package]]
 name = "annotated-types"
 version = "0.7.0"
@@ -2038,17 +2044,9 @@ wheels = [
 ]
 
 [[package]]
-name = "voicenotes-whisper"
+name = "voicenotes-monorepo"
 version = "0.1.0"
 source = { virtual = "." }
-dependencies = [
-    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
-    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
-    { name = "fastapi" },
-    { name = "faster-whisper" },
-    { name = "sse-starlette" },
-    { name = "uvicorn", extra = ["standard"] },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -2061,13 +2059,6 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "click" },
-    { name = "fastapi" },
-    { name = "faster-whisper" },
-    { name = "sse-starlette" },
-    { name = "uvicorn", extras = ["standard"] },
-]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2077,6 +2068,28 @@ dev = [
     { name = "isort" },
     { name = "nbformat" },
     { name = "yapf" },
+]
+
+[[package]]
+name = "voicenotes-whisper"
+version = "0.1.0"
+source = { virtual = "python" }
+dependencies = [
+    { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
+    { name = "click", version = "8.2.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.10'" },
+    { name = "fastapi" },
+    { name = "faster-whisper" },
+    { name = "sse-starlette" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "click" },
+    { name = "fastapi" },
+    { name = "faster-whisper" },
+    { name = "sse-starlette" },
+    { name = "uvicorn", extras = ["standard"] },
 ]
 
 [[package]]
