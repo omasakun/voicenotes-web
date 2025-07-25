@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { ReadStream } from "node:fs";
+import * as path from "node:path";
 import { Readable } from "node:stream";
 import busboy, { type BusboyFileStream } from "@fastify/busboy";
 import { DeferredAsyncIterator } from "./deferred";
@@ -165,4 +166,9 @@ export async function* parseSseResponse(response: Response): AsyncGenerator<{ ev
       yield { event, data };
     }
   }
+}
+
+export function changeExtension(filePath: string, newExt: string): string {
+  const parsed = path.parse(filePath);
+  return path.format({ ...parsed, base: undefined, ext: newExt });
 }

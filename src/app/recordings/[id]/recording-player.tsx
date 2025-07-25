@@ -4,9 +4,10 @@ import type { AudioRecording } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntersection } from "react-use";
 import { toast } from "sonner";
+import { useDebouncedCallback } from "use-debounce";
 import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,14 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
 
   const showStickyPlayer = intersection && !intersection.isIntersecting;
 
+  const handleSeek = useCallback(
+    (time: number) => {
+      audioPlayer.seek(time);
+      audioPlayer.play();
+    },
+    [audioPlayer.seek, audioPlayer.play],
+  );
+
   return (
     <div className="space-y-6">
       {showStickyPlayer && (
@@ -65,7 +74,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
           transcription={recording.transcription}
           whisperData={recording.whisperData}
           currentTime={audioPlayer.currentTime}
-          onSeek={audioPlayer.seek}
+          onSeek={handleSeek}
         />
       )}
     </div>
@@ -176,10 +185,25 @@ type AudioPlayerProps = {
 
 function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
   const { isPlaying, currentTime, duration, togglePlay, reset, seek } = audioPlayer;
+  const [sliderValue, setSliderValue] = useState(currentTime);
 
-  const handleSeek = ([value]: [number]) => {
+  const debouncedSeek = useDebouncedCallback((value: number) => {
     seek(value);
-  };
+  }, 100);
+
+  const handleSeek = useCallback(
+    ([value]: [number]) => {
+      setSliderValue(value);
+      debouncedSeek(value);
+    },
+    [debouncedSeek],
+  );
+
+  useEffect(() => {
+    if (!debouncedSeek.isPending()) {
+      setSliderValue(currentTime);
+    }
+  }, [debouncedSeek, currentTime]);
 
   if (compact) {
     return (
@@ -191,12 +215,12 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
           <RotateCcw className="h-3 w-3" />
         </Button>
         <div className="flex-1 flex items-center gap-3">
-          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(currentTime)}</span>
+          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(sliderValue)}</span>
           <Slider
             min={0}
             max={duration || 0}
             step={0.1}
-            value={[currentTime]}
+            value={[sliderValue]}
             onValueChange={handleSeek}
             className="flex-1"
           />
@@ -220,12 +244,12 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
             min={0}
             max={duration || 0}
             step={0.1}
-            value={[currentTime]}
+            value={[sliderValue]}
             onValueChange={handleSeek}
             className="w-full"
           />
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{formatPlaybackTime(currentTime)}</span>
+            <span>{formatPlaybackTime(sliderValue)}</span>
             <span>{formatPlaybackTime(duration)}</span>
           </div>
         </div>

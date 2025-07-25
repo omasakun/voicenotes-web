@@ -92,7 +92,6 @@ export function VoiceRecordings() {
                   <TableCell className="font-medium">{recording.title}</TableCell>
                   <TableCell>{recording.user.name || recording.user.email}</TableCell>
                   <TableCell>
-                    {" "}
                     <Badge className={getStatusColor(recording.status)}>{getStatusText(recording.status)}</Badge>
                   </TableCell>
                   <TableCell>{formatDistanceToNow(new Date(recording.createdAt), { addSuffix: true })}</TableCell>

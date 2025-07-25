@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, formatPlaybackTime } from "@/lib/utils";
 import type { Sentence, WhisperVerboseResponse, WordTiming } from "@/types/transcription";
@@ -12,73 +12,21 @@ interface InteractiveTranscriptionProps {
   onSeek: (time: number) => void;
 }
 
-export function InteractiveTranscription({
+export const InteractiveTranscription = memo(function InteractiveTranscription({
   transcription,
   whisperData,
   currentTime,
   onSeek,
 }: InteractiveTranscriptionProps) {
-  const [sentences, setSentences] = useState<Sentence[]>([]);
-
-  const parsedWordTimings = useMemo(() => {
+  const wordTimings = useMemo(() => {
     if (!whisperData) return [];
-    try {
-      const whisperResponse = JSON.parse(whisperData) as WhisperVerboseResponse;
-      return whisperResponse.words || [];
-    } catch {
-      return [];
-    }
+    const whisperResponse = JSON.parse(whisperData) as WhisperVerboseResponse;
+    return whisperResponse.words || [];
   }, [whisperData]);
 
-  // Group words into sentences
-  useEffect(() => {
-    if (parsedWordTimings.length === 0) {
-      setSentences([]);
-      return;
-    }
+  const sentences = useMemo(() => getSentences(wordTimings), [wordTimings]);
 
-    const groupedSentences: Sentence[] = [];
-    let currentSentence: WordTiming[] = [];
-    const maxWordsPerSentence = 100;
-
-    for (const wordTiming of parsedWordTimings) {
-      currentSentence.push(wordTiming);
-
-      const endsWithPunctuation = /[.!?。！？]/.test(wordTiming.word);
-      const sentenceTooLong = currentSentence.length >= maxWordsPerSentence;
-
-      if (endsWithPunctuation || sentenceTooLong) {
-        if (currentSentence.length > 0) {
-          const sentence: Sentence = {
-            words: [...currentSentence],
-            start: currentSentence[0].start,
-            end: currentSentence[currentSentence.length - 1].end,
-            text: currentSentence.map((w) => w.word).join(" "),
-          };
-          groupedSentences.push(sentence);
-          currentSentence = [];
-        }
-      }
-    }
-
-    if (currentSentence.length > 0) {
-      const sentence: Sentence = {
-        words: [...currentSentence],
-        start: currentSentence[0].start,
-        end: currentSentence[currentSentence.length - 1].end,
-        text: currentSentence.map((w) => w.word).join(" "),
-      };
-      groupedSentences.push(sentence);
-    }
-
-    setSentences(groupedSentences);
-  }, [parsedWordTimings]);
-
-  const activeSentenceIndex = useMemo(() => {
-    return sentences.findIndex((sentence) => currentTime >= sentence.start && currentTime <= sentence.end);
-  }, [sentences, currentTime]);
-
-  if (!whisperData || sentences.length === 0) {
+  if (sentences.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -104,73 +52,150 @@ export function InteractiveTranscription({
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {sentences.map((sentence, sentenceIndex) => (
-            <button
-              key={`sentence-${sentence.start}-${sentence.end}`}
-              type="button"
-              className={`
-                w-full text-left p-3 rounded-lg cursor-pointer transition-all duration-200 text-sm leading-relaxed
-                ${
-                  sentenceIndex === activeSentenceIndex
-                    ? "bg-blue-100 border-2 border-blue-300 shadow-sm"
-                    : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-                }
-              `}
-              onClick={() => onSeek(sentence.start)}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="grid">
-                    <div className="flex flex-wrap col-1 row-1 text-transparent select-none">
-                      {sentence.words.map((word) => {
-                        const isHighlighted = word.start <= currentTime && currentTime <= word.end;
-
-                        return (
-                          <span
-                            key={`word-${word.start}-${word.end}`}
-                            className={cn(
-                              "transition-all duration-100 rounded -mx-1 px-1",
-                              isHighlighted ? "font-semibold bg-blue-300" : "",
-                            )}
-                          >
-                            {word.word}
-                          </span>
-                        );
-                      })}
-                    </div>
-                    <div className="flex flex-wrap col-1 row-1">
-                      {sentence.words.map((word) => {
-                        const isHighlighted = word.start <= currentTime && currentTime <= word.end;
-
-                        return (
-                          // biome-ignore lint/a11y/noStaticElementInteractions: // TODO
-                          // biome-ignore lint/a11y/useKeyWithClickEvents: // TODO
-                          <div
-                            key={`word-${word.start}-${word.end}`}
-                            className={cn(
-                              "transition-all duration-100",
-                              isHighlighted ? "font-semibold text-blue-900" : "",
-                            )}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSeek(word.start);
-                            }}
-                          >
-                            {word.word}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                <div className="text-xs text-gray-500 whitespace-nowrap">
-                  {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
-                </div>
-              </div>
-            </button>
-          ))}
+          {sentences.map((sentence, sentenceIndex) => {
+            const isActive = sentence.start <= currentTime && currentTime <= sentence.end;
+            return (
+              <SentenceBlock
+                key={`sentence-${sentence.start}-${sentenceIndex}`}
+                sentence={sentence}
+                isActive={isActive}
+                currentTime={isActive ? currentTime : null}
+                onSeek={onSeek}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>
   );
+});
+
+interface SentenceBlockProps {
+  sentence: Sentence;
+  isActive: boolean;
+  currentTime: number | null; // null if not active (performance optimization)
+  onSeek: (time: number) => void;
+}
+
+const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentTime, onSeek }: SentenceBlockProps) {
+  return (
+    <button
+      type="button"
+      className={`
+        w-full text-left p-3 rounded-lg cursor-pointer transition-all duration-200 text-sm leading-relaxed
+        ${
+          isActive
+            ? "bg-blue-100 border-2 border-blue-300 shadow-sm"
+            : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
+        }
+      `}
+      onClick={() => onSeek(sentence.start)}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="grid">
+            <div className="flex flex-wrap col-1 row-1 text-transparent select-none">
+              {sentence.words.map((word, wordIndex) => {
+                const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
+                return <WordBackgroundBlock key={`bg-${word.start}-${wordIndex}`} word={word} isActive={isActive} />;
+              })}
+            </div>
+            <div className="flex flex-wrap col-1 row-1">
+              {sentence.words.map((word, wordIndex) => {
+                const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
+                return (
+                  <WordTextBlock
+                    key={`text-${word.start}-${wordIndex}`}
+                    word={word}
+                    isActive={isActive}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSeek(word.start);
+                    }}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 whitespace-nowrap">
+          {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
+        </div>
+      </div>
+    </button>
+  );
+});
+
+const WordBackgroundBlock = memo(function WordBackgroundBlock({
+  word,
+  isActive,
+}: {
+  word: WordTiming;
+  isActive: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "transition-all duration-100 rounded -mx-1 px-1",
+        isActive ? "font-semibold bg-blue-300" : "bg-transparent",
+      )}
+    >
+      {word.word}
+    </span>
+  );
+});
+
+const WordTextBlock = memo(function WordTextBlock({
+  word,
+  isActive,
+  onClick,
+}: {
+  word: WordTiming;
+  isActive: boolean;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: // TODO
+    // biome-ignore lint/a11y/useKeyWithClickEvents: // TODO
+    <div className={cn("transition-all duration-100", isActive ? "font-semibold text-blue-900" : "")} onClick={onClick}>
+      {word.word}
+    </div>
+  );
+});
+
+function getSentences(wordTimings: WordTiming[]): Sentence[] {
+  const sentences: Sentence[] = [];
+  let currentSentence: WordTiming[] = [];
+
+  for (const wordTiming of wordTimings) {
+    currentSentence.push(wordTiming);
+
+    const endsWithPunctuation = /[.!?。！？]/.test(wordTiming.word);
+    const sentenceTooLong = currentSentence.length >= 100;
+
+    if (endsWithPunctuation || sentenceTooLong) {
+      if (currentSentence.length > 0) {
+        const sentence: Sentence = {
+          words: [...currentSentence],
+          start: currentSentence[0].start,
+          end: currentSentence[currentSentence.length - 1].end,
+          text: currentSentence.map((w) => w.word).join(" "),
+        };
+        sentences.push(sentence);
+        currentSentence = [];
+      }
+    }
+  }
+
+  if (currentSentence.length > 0) {
+    const sentence: Sentence = {
+      words: [...currentSentence],
+      start: currentSentence[0].start,
+      end: currentSentence[currentSentence.length - 1].end,
+      text: currentSentence.map((w) => w.word).join(" "),
+    };
+    sentences.push(sentence);
+  }
+
+  return sentences;
 }
