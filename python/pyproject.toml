@@ -10,20 +10,3 @@ dependencies = [
   "uvicorn[standard]",
   "sse-starlette",
 ]
-
-[tool.uv]
-dev-dependencies = [
-  "autoflake",
-  "ipykernel",
-  "ipywidgets",
-  "isort",
-  "nbformat",
-  "yapf",
-]
-
-[tool.yapf]
-based_on_style = "yapf"
-blank_line_before_nested_class_or_def = false
-blank_lines_around_top_level_definition = 1
-column_limit = 160
-join_multiple_lines = true
