@@ -38,6 +38,7 @@ export function RecordingsList() {
       onSuccess: () => {
         toast.success("Recording deleted");
         queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
+        queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
       },
       onError: (error) => {
         toast.error(error.message);
@@ -55,9 +56,10 @@ export function RecordingsList() {
     if (!recordings.some((r) => r.status === "PROCESSING" || r.status === "PENDING")) return;
     const timer = setInterval(() => {
       queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
+      queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
     }, 1000);
     return () => clearInterval(timer);
-  }, [recordings, queryClient, trpc.recordings.list]);
+  }, [recordings, queryClient, trpc.recordings.list, trpc.recordings.listAll.queryKey]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this recording?")) {

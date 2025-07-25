@@ -1,7 +1,7 @@
 "use client";
 
 import type { AudioRecording } from "@prisma/client";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -23,6 +23,26 @@ import { type Player, usePlayer } from "./use-audio-player";
 
 interface RecordingPlayerProps {
   recording: AudioRecording;
+}
+
+export function LiveRecordingPlayer({ recording: initialRecording }: RecordingPlayerProps) {
+  const trpc = useTRPC();
+  const id = initialRecording.id;
+
+  const { data: recording, refetch } = useQuery(
+    trpc.recordings.get.queryOptions({ id }, { initialData: initialRecording }),
+  );
+
+  // Poll for updates if recording is processing
+  useEffect(() => {
+    if (recording?.status !== "PROCESSING" && recording?.status !== "PENDING") return;
+
+    const timer = setInterval(() => refetch(), 2000);
+
+    return () => clearInterval(timer);
+  }, [recording?.status, refetch]);
+
+  return <RecordingPlayer recording={recording} />;
 }
 
 export function RecordingPlayer({ recording }: RecordingPlayerProps) {
@@ -73,6 +93,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
         <InteractiveTranscription
           transcription={recording.transcription}
           whisperData={recording.whisperData}
+          status={recording.status}
           currentTime={audioPlayer.currentTime}
           onSeek={handleSeek}
         />

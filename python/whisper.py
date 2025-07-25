@@ -9,7 +9,7 @@ class Whisper:
     self.model_name = model_name
     self.compute_type = compute_type
     self.device = device
-    self.model = None
+    self.model: WhisperModel = None
     self.last_access_time = datetime.now()
 
   async def load(self):
@@ -34,45 +34,52 @@ class Whisper:
 
     yield {"type": "info", "language": info.language, "duration": info.duration}
 
-    segments_list = []
-    words = []
+    whisper_words = []
+    whisper_segments = []
     processed_duration = 0.0
 
     yield {"type": "status", "message": "Processing segments", "progress": 10}
 
-    for segment in segments_iter:
-      segments_list.append(segment)
+    for i, segment in enumerate(segments_iter):
+      segment_words = [{"word": word.word.strip(), "start": word.start, "end": word.end} for word in segment.words]
+      segment_data = {
+          "id": i,
+          "seek": segment.seek,
+          "start": segment.start,
+          "end": segment.end,
+          "text": segment.text.strip(),
+          "temperature": segment.temperature,
+          "avg_logprob": segment.avg_logprob,
+          "compression_ratio": segment.compression_ratio,
+          "no_speech_prob": segment.no_speech_prob,
+      }
+
+      whisper_words.extend(segment_words)
+      whisper_segments.append(segment_data)
+
       processed_duration = segment.end
-      progress = min(10 + (processed_duration / info.duration) * 80, 90)  # 10-90% range
+      progress = min(10 + (processed_duration / info.duration) * 89, 99)  # 10-99% range
+
+      delta = {
+          "words": segment_words,
+          "segment": segment_data,
+      }
+
       yield {"type": "progress", "progress": progress, "processed_duration": processed_duration}
-      if hasattr(segment, 'words') and segment.words:
-        for word in segment.words:
-          words.append({"word": word.word.strip(), "start": word.start, "end": word.end})
+      yield {"type": "delta", "data": delta}
 
       if await req.is_disconnected():
         yield {"type": "error", "error": "Client disconnected"}
         return
 
-    yield {"type": "status", "message": "Formatting results", "progress": 90}
-
-    whisper_segments = []
-    for i, segment in enumerate(segments_list):
-      whisper_segments.append({
-          "id": i,
-          "seek": int(segment.start * 100),
-          "start": segment.start,
-          "end": segment.end,
-          "text": segment.text.strip(),
-          "tokens": [],
-          "temperature": 0.0,
-          "avg_logprob": getattr(segment, 'avg_logprob', -0.5),
-          "compression_ratio": getattr(segment, 'compression_ratio', 2.0),
-          "no_speech_prob": getattr(segment, 'no_speech_prob', 0.0)
-      })
-
-    full_text = " ".join(segment.text.strip() for segment in segments_list)
-
-    result = {"task": "transcribe", "language": info.language, "duration": info.duration, "text": full_text, "words": words, "segments": whisper_segments}
+    result = {
+        "task": "transcribe",
+        "language": info.language,
+        "duration": info.duration,
+        "text": " ".join(segment["text"].strip() for segment in whisper_segments),
+        "words": whisper_words,
+        "segments": whisper_segments,
+    }
 
     yield {"type": "status", "message": "Done", "progress": 100}
     yield {"type": "result", "data": result}

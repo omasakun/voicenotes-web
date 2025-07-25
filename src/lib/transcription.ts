@@ -5,6 +5,7 @@ import { OpenAI } from "openai";
 import type { WhisperVerboseResponse } from "@/types/transcription";
 import { transcribeWithFasterWhisper } from "./faster-whisper";
 import { prisma } from "./prisma";
+import { changeExtension } from "./utils-server";
 
 const PROGRESS_DEBOUNCE_MS = 500;
 
@@ -115,8 +116,11 @@ class TranscriptionQueue {
         },
       });
 
+      // Convert audio to 16kHz OGG
+      const convertedFilePath = await this.convertTo16kHzOgg(job.filePath);
+
       // Get audio duration using ffmpeg
-      const duration = await this.getAudioDuration(job.filePath);
+      const duration = await this.getAudioDuration(convertedFilePath);
 
       // Update duration in database
       await prisma.audioRecording.update({
@@ -127,9 +131,17 @@ class TranscriptionQueue {
       let lastProgressUpdate = 0;
 
       // Transcribe using faster-whisper
-      const fullPath = join(process.cwd(), job.filePath);
+      const partialResult: Required<WhisperVerboseResponse> = {
+        duration: 0,
+        language: "",
+        text: "",
+        segments: [],
+        words: [],
+      };
+
+      const fullPath = join(process.cwd(), convertedFilePath);
       const whisperResponse = await transcribeWithFasterWhisper(fullPath, {
-        async onProgress(progress: number, _message?: string) {
+        async onProgress(progress) {
           const now = Date.now();
           if (now - lastProgressUpdate >= PROGRESS_DEBOUNCE_MS || progress >= 100) {
             lastProgressUpdate = now;
@@ -141,6 +153,27 @@ class TranscriptionQueue {
             } catch (error) {
               console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
             }
+          }
+        },
+        async onInfo(info) {
+          partialResult.duration = info.duration;
+          partialResult.language = info.language;
+        },
+        async onDelta(delta) {
+          partialResult.segments.push(delta.segment);
+          partialResult.words.push(...(delta.words || []));
+          partialResult.text = partialResult.segments.map((s) => s.text).join(" ");
+
+          try {
+            await prisma.audioRecording.update({
+              where: { id: job.recordingId },
+              data: {
+                transcription: partialResult.text,
+                whisperData: JSON.stringify(partialResult),
+              },
+            });
+          } catch (error) {
+            console.error(`Failed to update partial result for recording ${job.recordingId}:`, error);
           }
         },
       });
@@ -168,6 +201,21 @@ class TranscriptionQueue {
           transcriptionError: error instanceof Error ? error.message : "Unknown error",
         },
       });
+    }
+  }
+
+  private async convertTo16kHzOgg(filePath: string): Promise<string> {
+    try {
+      const fullPath = join(process.cwd(), filePath);
+      const outputFilePath = changeExtension(filePath, ".16kHz.ogg");
+      const outputFullPath = join(process.cwd(), outputFilePath);
+
+      await execa("ffmpeg", ["-i", fullPath, "-ar", "16000", "-ac", "1", "-c:a", "libvorbis", outputFullPath]);
+
+      return outputFilePath;
+    } catch (error) {
+      console.error("Failed to convert audio to 16kHz OGG:", error);
+      throw new Error("Audio conversion failed");
     }
   }
 

@@ -20,6 +20,7 @@ export function VoiceRecordings() {
   const rescheduleRecordingMutation = useMutation(
     trpc.recordings.reschedule.mutationOptions({
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
         queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
         toast.success("Recording rescheduled for processing");
       },
@@ -32,6 +33,7 @@ export function VoiceRecordings() {
   const rescheduleAllFailedMutation = useMutation(
     trpc.recordings.rescheduleAllFailed.mutationOptions({
       onSuccess: (count) => {
+        queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
         queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
         toast.success(`Rescheduled ${count} failed recordings`);
       },

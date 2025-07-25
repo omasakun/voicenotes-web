@@ -78,6 +78,7 @@ export function UploadForm() {
 
       // Refresh the recordings list
       queryClient.invalidateQueries({ queryKey: trpc.recordings.list.infiniteQueryKey() });
+      queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
     } catch (error) {
       console.error("Upload error:", error);
       toast.error(error instanceof Error ? error.message : "Upload failed");

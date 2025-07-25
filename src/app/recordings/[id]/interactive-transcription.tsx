@@ -1,6 +1,8 @@
 "use client";
 
+import { Loader } from "lucide-react";
 import { memo, useMemo } from "react";
+import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, formatPlaybackTime } from "@/lib/utils";
 import type { Sentence, WhisperVerboseResponse, WordTiming } from "@/types/transcription";
@@ -8,6 +10,7 @@ import type { Sentence, WhisperVerboseResponse, WordTiming } from "@/types/trans
 interface InteractiveTranscriptionProps {
   transcription: string;
   whisperData: string | null;
+  status: string;
   currentTime: number;
   onSeek: (time: number) => void;
 }
@@ -15,27 +18,45 @@ interface InteractiveTranscriptionProps {
 export const InteractiveTranscription = memo(function InteractiveTranscription({
   transcription,
   whisperData,
+  status,
   currentTime,
   onSeek,
 }: InteractiveTranscriptionProps) {
   const wordTimings = useMemo(() => {
     if (!whisperData) return [];
-    const whisperResponse = JSON.parse(whisperData) as WhisperVerboseResponse;
-    return whisperResponse.words || [];
+    try {
+      const whisperResponse = JSON.parse(whisperData) as WhisperVerboseResponse;
+      return whisperResponse.words || [];
+    } catch (error) {
+      console.error("Failed to parse whisper data:", error);
+      return [];
+    }
   }, [whisperData]);
 
   const sentences = useMemo(() => getSentences(wordTimings), [wordTimings]);
+
+  const isProcessing = status === "PROCESSING";
 
   if (sentences.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Transcription</CardTitle>
-          <CardDescription>Automatically generated transcript of your audio recording</CardDescription>
+          <CardTitle>{isProcessing ? "Transcription in Progress" : "Transcription"}</CardTitle>
+          <CardDescription>
+            {isProcessing
+              ? "Your audio is being transcribed. The text will update in real-time as processing continues."
+              : "Automatically generated transcript of your audio recording"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="prose prose-sm max-w-none">
             <p className="whitespace-pre-wrap text-sm leading-relaxed">{transcription}</p>
+            {isProcessing && (
+              <Alert variant="info" className="mt-4">
+                <Loader className="animate-spin" />
+                <AlertTitle>The transcription is currently being processed...</AlertTitle>
+              </Alert>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -45,9 +66,11 @@ export const InteractiveTranscription = memo(function InteractiveTranscription({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Interactive Transcription</CardTitle>
+        <CardTitle>{isProcessing ? "Transcription in Progress" : "Interactive Transcription"}</CardTitle>
         <CardDescription>
-          Click on any sentence to jump to that part of the audio. Highlighted text shows the current playback position.
+          {isProcessing
+            ? "Transcription is being generated in real-time. Click on any completed sentence to jump to that part of the audio."
+            : "Click on any sentence to jump to that part of the audio. Highlighted text shows the current playback position."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -64,6 +87,12 @@ export const InteractiveTranscription = memo(function InteractiveTranscription({
               />
             );
           })}
+          {isProcessing && (
+            <Alert variant="info" className="mt-4">
+              <Loader className="animate-spin" />
+              <AlertTitle>The transcription is currently being processed...</AlertTitle>
+            </Alert>
+          )}
         </div>
       </CardContent>
     </Card>

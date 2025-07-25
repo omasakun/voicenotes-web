@@ -163,7 +163,9 @@ export async function* parseSseResponse(response: Response): AsyncGenerator<{ ev
         }
       }
 
-      yield { event, data };
+      if (data) {
+        yield { event, data };
+      }
     }
   }
 }

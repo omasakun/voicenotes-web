@@ -25,10 +25,19 @@ export interface WhisperSegment {
 }
 
 export interface WhisperVerboseResponse {
-  task: string;
   language: string;
   duration: number;
   text: string;
   words?: WordTiming[];
   segments?: WhisperSegment[];
+}
+
+export interface WhisperDelta {
+  words?: WordTiming[];
+  segment: WhisperSegment;
+}
+
+export interface WhisperInfo {
+  language: string;
+  duration: number;
 }

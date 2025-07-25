@@ -2,6 +2,9 @@
 name = "voicenotes-monorepo"
 version = "0.1.0"
 requires-python = ">=3.9"
+dependencies = [
+    "voicenotes-whisper",
+]
 
 [tool.uv]
 dev-dependencies = [
@@ -15,6 +18,9 @@ dev-dependencies = [
 
 [tool.uv.workspace]
 members = ["python"]
+
+[tool.uv.sources]
+voicenotes-whisper = { workspace = true }
 
 [tool.yapf]
 based_on_style = "yapf"

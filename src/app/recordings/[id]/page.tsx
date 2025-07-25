@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { RecordingPlayer } from "./recording-player";
+import { LiveRecordingPlayer, RecordingPlayer } from "./recording-player";
 
 interface PageProps {
   params: Promise<{
@@ -31,9 +31,11 @@ export default async function RecordingPage({ params }: PageProps) {
     return notFound();
   }
 
+  const isProcessing = recording.status === "PROCESSING" || recording.status === "PENDING";
+
   return (
     <div className="container mx-auto py-8 px-4">
-      <RecordingPlayer recording={recording} />
+      {isProcessing ? <LiveRecordingPlayer recording={recording} /> : <RecordingPlayer recording={recording} />}
     </div>
   );
 }

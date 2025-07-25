@@ -1,18 +1,20 @@
-import type { WhisperVerboseResponse } from "@/types/transcription";
+import type { WhisperDelta, WhisperInfo, WhisperVerboseResponse } from "@/types/transcription";
 import { parseSseResponse } from "./utils-server";
 
 const SERVER_URL = process.env.WHISPER_SERVER_URL;
 
 interface FasterWhisperServerOptions {
   language?: string;
+  onInfo?: (info: WhisperInfo) => void;
   onProgress?: (progress: number, message?: string) => void;
+  onDelta?: (partialResult: WhisperDelta) => void;
 }
 
 export async function transcribeWithFasterWhisper(
   audioPath: string,
   options: FasterWhisperServerOptions = {},
 ): Promise<WhisperVerboseResponse> {
-  const { language, onProgress } = options;
+  const { language, onInfo, onProgress, onDelta } = options;
 
   const endpoint = new URL("/process", SERVER_URL);
 
@@ -44,11 +46,15 @@ export async function transcribeWithFasterWhisper(
     try {
       const parsed = JSON.parse(data);
       switch (parsed.type) {
+        case "info":
+          onInfo?.({ language: parsed.language, duration: parsed.duration });
+          break;
         case "status":
         case "progress":
-          if (parsed.progress !== undefined) {
-            onProgress?.(parsed.progress, parsed.message);
-          }
+          onProgress?.(parsed.progress, parsed.message);
+          break;
+        case "delta":
+          onDelta?.(parsed.data);
           break;
         case "result":
           result = parsed.data;
