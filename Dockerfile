@@ -27,7 +27,7 @@ uv run --script <<===
 # ///
 
 from faster_whisper import WhisperModel
-WhisperModel("large-v3")
+WhisperModel("large-v3-turbo")
 
 ===
 
