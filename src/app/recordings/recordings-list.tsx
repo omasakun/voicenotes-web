@@ -119,7 +119,7 @@ export function RecordingsList() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Transcription Progress</span>
-                    <span>{recording.transcriptionProgress.toFixed(0)}%</span>
+                    <span>{recording.transcriptionProgress.toFixed(2)}%</span>
                   </div>
                   <Progress value={recording.transcriptionProgress} className="w-full" />
                 </div>

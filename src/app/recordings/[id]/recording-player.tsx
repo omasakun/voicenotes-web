@@ -284,7 +284,7 @@ function TranscriptionProgress({ progress }: { progress: number }) {
     <div className="space-y-2">
       <Label>Transcription Progress</Label>
       <Progress value={progress} className="w-full" />
-      <p className="text-sm text-muted-foreground">{progress.toFixed(0)}% complete</p>
+      <p className="text-sm text-muted-foreground">{progress.toFixed(2)}% complete</p>
     </div>
   );
 }

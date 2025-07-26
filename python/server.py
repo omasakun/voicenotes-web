@@ -35,6 +35,7 @@ async def lifespan(app):
   async def auto_unload(timeout_seconds: int = 60):
     while True:
       await asyncio.sleep(10)
+      if lock.locked(): continue
       if whisper.model and (datetime.now() - whisper.last_access_time > timedelta(seconds=timeout_seconds)):
         print("Unloading model from memory")
         await whisper.unload()

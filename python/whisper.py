@@ -28,7 +28,7 @@ class Whisper:
       yield {"type": "error", "error": f"Audio file not found: {audio_path}"}
       return
 
-    yield {"type": "status", "message": "Starting transcription", "progress": 5}
+    yield {"type": "status", "message": "Starting transcription", "progress": 2}
 
     segments_iter, info = self.model.transcribe(
         audio_path, language=language, word_timestamps=True, vad_filter=True, vad_parameters=dict(min_silence_duration_ms=500))
@@ -39,7 +39,7 @@ class Whisper:
     whisper_segments = []
     processed_duration = 0.0
 
-    yield {"type": "status", "message": "Processing segments", "progress": 10}
+    yield {"type": "status", "message": "Processing segments", "progress": 4}
 
     for i, segment in enumerate(segments_iter):
       segment_words = [{"word": word.word.strip(), "start": word.start, "end": word.end} for word in segment.words]
@@ -59,7 +59,7 @@ class Whisper:
       whisper_segments.append(segment_data)
 
       processed_duration = segment.end
-      progress = min(10 + (processed_duration / info.duration) * 89, 99)  # 10-99% range
+      progress = min(5 + (processed_duration / info.duration) * 94, 99)  # 5-99% range
 
       delta = {
           "words": segment_words,

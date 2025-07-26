@@ -91,7 +91,7 @@ export function AccountDashboard({ user }: { user: User }) {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span>Overall Completion</span>
-              <span>{completionRate.toFixed(1)}%</span>
+              <span>{completionRate.toFixed(2)}%</span>
             </div>
             <Progress value={completionRate} className="w-full" />
           </div>
