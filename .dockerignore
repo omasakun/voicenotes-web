@@ -6,12 +6,14 @@
 !/uv.lock
 
 # secret & data
-/uploads/
+**/uploads/
 
 # generated
-/.next/
-/coverage/
-/src/generated/prisma/
+**/.astro/
+**/.next/
+**/coverage/
+**/dist/
+**/src/generated/prisma/
 **/__pycache__/
 **/node_modules/
 

@@ -1,3 +1,7 @@
+packages:
+  - app
+  - nextjs
+
 onlyBuiltDependencies:
   - '@ffmpeg-installer/linux-x64'
   - '@prisma/client'
