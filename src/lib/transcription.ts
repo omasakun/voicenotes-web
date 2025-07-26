@@ -119,15 +119,6 @@ class TranscriptionQueue {
       // Convert audio to 16kHz OGG
       const convertedFilePath = await this.convertTo16kHzOgg(job.filePath);
 
-      // Get audio duration using ffmpeg
-      const duration = await this.getAudioDuration(convertedFilePath);
-
-      // Update duration in database
-      await prisma.audioRecording.update({
-        where: { id: job.recordingId },
-        data: { duration },
-      });
-
       let lastProgressUpdate = 0;
 
       // Transcribe using faster-whisper
@@ -148,7 +139,7 @@ class TranscriptionQueue {
             try {
               await prisma.audioRecording.update({
                 where: { id: job.recordingId },
-                data: { transcriptionProgress: Math.round(progress) },
+                data: { transcriptionProgress: progress * 0.98 + 1 }, // 1% ~ 99% for processing
               });
             } catch (error) {
               console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
@@ -158,6 +149,16 @@ class TranscriptionQueue {
         async onInfo(info) {
           partialResult.duration = info.duration;
           partialResult.language = info.language;
+
+          // update duration entry
+          try {
+            await prisma.audioRecording.update({
+              where: { id: job.recordingId },
+              data: { duration: info.duration },
+            });
+          } catch (error) {
+            console.error(`Failed to update duration for recording ${job.recordingId}:`, error);
+          }
         },
         async onDelta(delta) {
           partialResult.segments.push(delta.segment);
@@ -182,6 +183,7 @@ class TranscriptionQueue {
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
         data: {
+          duration: whisperResponse.duration,
           transcription: whisperResponse.text,
           whisperData: JSON.stringify(whisperResponse),
           status: "COMPLETED",
@@ -210,7 +212,7 @@ class TranscriptionQueue {
       const outputFilePath = changeExtension(filePath, ".16kHz.ogg");
       const outputFullPath = join(process.cwd(), outputFilePath);
 
-      await execa("ffmpeg", ["-i", fullPath, "-ar", "16000", "-ac", "1", "-c:a", "libvorbis", outputFullPath]);
+      await execa("ffmpeg", ["-y", "-i", fullPath, "-ar", "16000", "-ac", "1", "-c:a", "libvorbis", outputFullPath]);
 
       return outputFilePath;
     } catch (error) {
@@ -219,6 +221,7 @@ class TranscriptionQueue {
     }
   }
 
+  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private async getAudioDuration(filePath: string): Promise<number> {
     try {
       const fullPath = join(process.cwd(), filePath);

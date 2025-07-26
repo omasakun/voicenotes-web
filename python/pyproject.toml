@@ -1,7 +1,7 @@
 [project]
 name = "voicenotes-whisper"
-version = "0.1.0"
-description = "Local transcription service using faster-whisper"
+version = "1.0.0"
+description = "Standalone transcription service using faster-whisper"
 requires-python = ">=3.9"
 dependencies = [
   "click",
@@ -9,4 +9,6 @@ dependencies = [
   "fastapi",
   "uvicorn[standard]",
   "sse-starlette",
+  "python-multipart",
+  "python-dotenv",
 ]

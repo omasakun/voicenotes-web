@@ -1,7 +1,9 @@
+import { openAsBlob } from "node:fs";
 import type { WhisperDelta, WhisperInfo, WhisperVerboseResponse } from "@/types/transcription";
 import { parseSseResponse } from "./utils-server";
 
 const SERVER_URL = process.env.WHISPER_SERVER_URL;
+const WHISPER_USE_UPLOAD = process.env.WHISPER_USE_UPLOAD === "true";
 
 interface FasterWhisperServerOptions {
   language?: string;
@@ -12,27 +14,36 @@ interface FasterWhisperServerOptions {
 
 export async function transcribeWithFasterWhisper(
   audioPath: string,
-  options: FasterWhisperServerOptions = {},
+  options: Omit<FasterWhisperServerOptions, "useUploadEndpoint"> = {},
 ): Promise<WhisperVerboseResponse> {
   const { language, onInfo, onProgress, onDelta } = options;
 
-  const endpoint = new URL("/process", SERVER_URL);
-
-  const body = {
-    audio_path: audioPath,
-    language,
-  };
-
   const controller = new AbortController();
+  let response: Response;
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-    signal: controller.signal,
-  });
+  if (WHISPER_USE_UPLOAD) {
+    const endpoint = new URL("/transcribe-upload", SERVER_URL);
+    const formData = new FormData();
+    const audioFile = await openAsBlob(audioPath);
+    formData.append("audio", audioFile);
+    formData.append("language", language || "");
+
+    response = await fetch(endpoint, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+    });
+  } else {
+    const endpoint = new URL("/transcribe", SERVER_URL);
+    response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ audio_path: audioPath, language }),
+      signal: controller.signal,
+    });
+  }
 
   if (!response.ok || !response.body) {
     throw new Error(`Whisper server error: ${response.status} ${response.statusText}`);

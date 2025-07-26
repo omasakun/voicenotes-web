@@ -1,3 +1,4 @@
+from io import BytesIO
 from fastapi import Request
 from faster_whisper import WhisperModel
 
@@ -20,10 +21,10 @@ class Whisper:
   async def unload(self):
     self.model = None
 
-  async def transcribe(self, req: Request, audio_path: str, language: str = None):
+  async def transcribe(self, req: Request, audio_path: str | BytesIO, language: str = None):
     await self.load()
     self.last_access_time = datetime.now()
-    if not os.path.exists(audio_path):
+    if isinstance(audio_path, str) and not os.path.exists(audio_path):
       yield {"type": "error", "error": f"Audio file not found: {audio_path}"}
       return
 

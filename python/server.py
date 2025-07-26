@@ -6,14 +6,16 @@ import signal
 import sys
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
+from io import BytesIO
 
 import click
 import numpy as np
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, File, Form, Request, UploadFile
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
+from utils import format_exception
 from whisper import Whisper
 
 load_dotenv("../.env", verbose=True)
@@ -40,9 +42,9 @@ app = FastAPI(lifespan=lifespan)
 whisper = Whisper(model_name=MODEL_NAME, compute_type=COMPUTE_TYPE, device=DEVICE)
 lock = asyncio.Lock()
 
-class ProcessRequest(BaseModel):
+class TranscribeRequest(BaseModel):
   audio_path: str
-  language: str = None
+  language: str | None = None
 
 def to_plain(obj):
   if dataclasses.is_dataclass(obj):
@@ -53,26 +55,61 @@ def to_plain(obj):
     return obj.item()
   return str(obj)
 
-@app.post("/process")
-async def process_audio(req: Request, body: ProcessRequest):
+@app.post("/transcribe")
+async def transcribe_audio(req: Request, body: TranscribeRequest):
   async def event_stream():
     try:
       async for event in whisper.transcribe(req, body.audio_path, body.language):
         yield {"data": json.dumps(event, default=to_plain)}
         await asyncio.sleep(0)  # Yield control to the event loop
     except Exception as e:
-      print(f"Error during transcription: {e}")
+      formatted = format_exception(e)
+      print(f"Error during transcription: {formatted}")
+      yield {"data": json.dumps({"type": "error", "error": formatted}, default=to_plain)}
 
   async with lock:
     return EventSourceResponse(event_stream())
 
-@app.get("/health")
+class TranscribeUploadRequest(BaseModel):
+  language: str | None = None
+
+@app.post("/transcribe-upload")
+async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), language: str = Form(None)):
+  if language == "": language = None
+
+  async def event_stream():
+    try:
+      audio_buffer = BytesIO(content)
+      async for event in whisper.transcribe(req, audio_buffer, language):
+        yield {"data": json.dumps(event, default=to_plain)}
+        await asyncio.sleep(0)
+
+    except Exception as e:
+      formatted = format_exception(e)
+      print(f"Error during transcription: {formatted}")
+      yield {"data": json.dumps({"type": "error", "error": formatted}, default=to_plain)}
+
+  async with lock:
+    content = await audio.read()
+    return EventSourceResponse(event_stream())
+
+class HealthCheckResponse(BaseModel):
+  status: str
+  model_name: str
+  compute_type: str
+  device: str
+  model_loaded: bool
+  last_access: str | None
+
+@app.get("/health", response_model=HealthCheckResponse)
 async def health_check():
   return {
       "status": "ok",
       "model_name": whisper.model_name,
       "compute_type": whisper.compute_type,
       "device": whisper.device,
+      "model_loaded": whisper.model is not None,
+      "last_access": whisper.last_access_time.isoformat() if whisper.last_access_time else None,
   }
 
 @click.command()
