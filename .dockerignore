@@ -1,0 +1,28 @@
+# Based on .gitignore
+
+/**
+!/python/
+!/pyproject.toml
+!/uv.lock
+
+# secret & data
+/uploads/
+
+# generated
+/.next/
+/coverage/
+/src/generated/prisma/
+**/__pycache__/
+**/node_modules/
+
+
+**/*.sqlite*
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# debug
+**/*.log*
+
+# misc
+**/.DS_Store
+**/*.pem

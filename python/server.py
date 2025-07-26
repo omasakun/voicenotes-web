@@ -17,6 +17,9 @@ from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 from utils import format_exception
 from whisper import Whisper
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import secrets
 
 load_dotenv("../.env", verbose=True)
 
@@ -25,6 +28,7 @@ PORT = int(os.getenv("WHISPER_PORT"))
 MODEL_NAME = os.getenv("WHISPER_MODEL_NAME")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE")
 DEVICE = os.getenv("WHISPER_DEVICE")
+PASSWORD = os.getenv("WHISPER_PASSWORD")
 
 @asynccontextmanager
 async def lifespan(app):
@@ -41,6 +45,18 @@ async def lifespan(app):
 app = FastAPI(lifespan=lifespan)
 whisper = Whisper(model_name=MODEL_NAME, compute_type=COMPUTE_TYPE, device=DEVICE)
 lock = asyncio.Lock()
+security = HTTPBasic()
+
+def basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
+  if PASSWORD is None:
+    raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Auth password not set")
+  correct_password = secrets.compare_digest(credentials.password, PASSWORD)
+  if not correct_password:
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Incorrect password",
+        headers={"WWW-Authenticate": "Basic"},
+    )
 
 class TranscribeRequest(BaseModel):
   audio_path: str
@@ -56,7 +72,7 @@ def to_plain(obj):
   return str(obj)
 
 @app.post("/transcribe")
-async def transcribe_audio(req: Request, body: TranscribeRequest):
+async def transcribe_audio(req: Request, body: TranscribeRequest, _auth=Depends(basic_auth)):
   async def event_stream():
     try:
       async for event in whisper.transcribe(req, body.audio_path, body.language):
@@ -74,7 +90,7 @@ class TranscribeUploadRequest(BaseModel):
   language: str | None = None
 
 @app.post("/transcribe-upload")
-async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), language: str = Form(None)):
+async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), language: str = Form(None), _auth=Depends(basic_auth)):
   if language == "": language = None
 
   async def event_stream():

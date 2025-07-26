@@ -12,3 +12,6 @@ dependencies = [
   "python-multipart",
   "python-dotenv",
 ]
+
+[tool.setuptools]
+py-modules = []

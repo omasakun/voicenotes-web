@@ -1,5 +1,6 @@
 {
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -14,6 +15,7 @@
     "auth:generate": "npx @better-auth/cli generate",
     "whisper:setup": "cd python && uv sync",
     "whisper:start": "cd python && uv run python server.py",
+    "whisper:deploy": "tsx scripts/deploy-whisper.ts",
     "dev:with-whisper": "concurrently \"npm run whisper:start -- --dev\" \"npm run dev\"",
     "start:with-whisper": "concurrently \"npm run whisper:start\" \"npm run start\""
   },
@@ -41,10 +43,12 @@
     "@trpc/tanstack-react-query": "^11.4.3",
     "bcryptjs": "^3.0.2",
     "better-auth": "^1.2.12",
+    "chalk": "^5.4.1",
     "class-variance-authority": "^0.7.1",
     "client-only": "^0.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.1",
     "execa": "^9.6.0",
     "jose": "^6.0.12",
     "lucide-react": "^0.525.0",

@@ -4,6 +4,7 @@ import { parseSseResponse } from "./utils-server";
 
 const SERVER_URL = process.env.WHISPER_SERVER_URL;
 const WHISPER_USE_UPLOAD = process.env.WHISPER_USE_UPLOAD === "true";
+const WHISPER_PASSWORD = process.env.WHISPER_PASSWORD;
 
 interface FasterWhisperServerOptions {
   language?: string;
@@ -21,6 +22,8 @@ export async function transcribeWithFasterWhisper(
   const controller = new AbortController();
   let response: Response;
 
+  const authHeader = { Authorization: `Basic ${Buffer.from(`user:${WHISPER_PASSWORD}`).toString("base64")}` };
+
   if (WHISPER_USE_UPLOAD) {
     const endpoint = new URL("/transcribe-upload", SERVER_URL);
     const formData = new FormData();
@@ -30,6 +33,7 @@ export async function transcribeWithFasterWhisper(
 
     response = await fetch(endpoint, {
       method: "POST",
+      headers: authHeader,
       body: formData,
       signal: controller.signal,
     });
@@ -39,6 +43,7 @@ export async function transcribeWithFasterWhisper(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...authHeader,
       },
       body: JSON.stringify({ audio_path: audioPath, language }),
       signal: controller.signal,
