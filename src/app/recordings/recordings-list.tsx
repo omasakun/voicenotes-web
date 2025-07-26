@@ -2,6 +2,7 @@
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, FileAudio, Play, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -99,9 +100,9 @@ export function RecordingsList() {
           <Card key={recording.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between gap-2">
-                <Button variant="link" className="text-lg p-0" onClick={() => handlePlay(recording.id)}>
+                <Link href={`/recordings/${recording.id}`} className="text-lg p-0 hover:underline">
                   {recording.title}
-                </Button>
+                </Link>
                 <Badge className={getStatusColor(recording.status)}>{getStatusText(recording.status)}</Badge>
               </CardTitle>
               <CardDescription className="flex items-center gap-2 text-sm">
