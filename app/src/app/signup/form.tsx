@@ -123,7 +123,7 @@ export function SignUpForm() {
               style={{ textTransform: "uppercase" }}
               required
             />
-            {isValidatingInvitation && <p className="text-sm text-muted-foreground">Validating invitation...</p>}
+            {isValidatingInvitation && <p className="text-muted-foreground text-sm">Validating invitation...</p>}
             {invitationValidation && (
               <Alert variant={invitationValidation.valid ? "default" : "destructive"}>
                 {invitationValidation.valid ? (

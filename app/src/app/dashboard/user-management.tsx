@@ -77,11 +77,11 @@ export function UserManagement() {
           <CardAction>
             <div className="flex items-center space-x-2">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="text-muted-foreground absolute left-2 top-2.5 h-4 w-4" />
                 <Input
                   placeholder="Search users..."
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-8 w-[300px]"
+                  className="w-[300px] pl-8"
                 />
               </div>
             </div>
@@ -103,7 +103,7 @@ export function UserManagement() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-muted-foreground py-8 text-center">
                     Loading...
                   </TableCell>
                 </TableRow>
@@ -113,13 +113,13 @@ export function UserManagement() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{user.name}</div>
-                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                        <div className="text-muted-foreground text-sm">{user.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       {user.role === "admin" ? (
                         <Badge variant="default">
-                          <Shield className="h-3 w-3 mr-1" />
+                          <Shield className="mr-1 h-3 w-3" />
                           Admin
                         </Badge>
                       ) : (
@@ -129,12 +129,12 @@ export function UserManagement() {
                     <TableCell>
                       {user.banned ? (
                         <Badge variant="destructive">
-                          <Ban className="h-3 w-3 mr-1" />
+                          <Ban className="mr-1 h-3 w-3" />
                           Banned
                         </Badge>
                       ) : (
                         <Badge variant="outline">
-                          <CheckCircle className="h-3 w-3 mr-1" />
+                          <CheckCircle className="mr-1 h-3 w-3" />
                           Active
                         </Badge>
                       )}
@@ -143,7 +143,7 @@ export function UserManagement() {
                       {user.inviterId ? (
                         <div className="text-sm">
                           Invited by user
-                          <div className="text-xs text-muted-foreground">ID: {user.inviterId}</div>
+                          <div className="text-muted-foreground text-xs">ID: {user.inviterId}</div>
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>

@@ -18,13 +18,13 @@ export function AudioRecorder({ onRecordingComplete, disabled }: AudioRecorderPr
   const [estimatedDuration, setEstimatedDuration] = useState(0);
 
   const handleRecordingComplete = (audioBlob: Blob, recordingTime: number) => {
-    recordedAudio && URL.revokeObjectURL(URL.createObjectURL(recordedAudio));
+    if (recordedAudio) URL.revokeObjectURL(URL.createObjectURL(recordedAudio));
     setRecordedAudio(audioBlob);
     setEstimatedDuration(recordingTime);
   };
 
   const deleteRecording = () => {
-    recordedAudio && URL.revokeObjectURL(URL.createObjectURL(recordedAudio));
+    if (recordedAudio) URL.revokeObjectURL(URL.createObjectURL(recordedAudio));
     setRecordedAudio(null);
   };
 
@@ -57,7 +57,7 @@ export function AudioRecorder({ onRecordingComplete, disabled }: AudioRecorderPr
         {recordedAudio && (
           <Button type="button" onClick={useRecordedAudio} className="w-full" disabled={disabled}>
             Use This Recording
-            <ArrowRight className="w-4 h-4 mr-2" />
+            <ArrowRight className="mr-2 h-4 w-4" />
           </Button>
         )}
       </div>
@@ -134,19 +134,19 @@ export function AudioRecorderControls({ onRecordingComplete, disabled }: AudioRe
     <div className="space-y-3">
       {!isRecording && (
         <Button type="button" onClick={startRecording} variant="outline" className="w-full" disabled={disabled}>
-          <Mic className="w-4 h-4 mr-2" />
+          <Mic className="mr-2 h-4 w-4" />
           Start Recording
         </Button>
       )}
 
       {isRecording && (
         <div className="space-y-3">
-          <div className="flex items-center justify-center space-x-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+          <div className="flex items-center justify-center space-x-4 rounded-lg border border-red-200 bg-red-50 p-4">
+            <div className="h-3 w-3 animate-pulse rounded-full bg-red-500" />
             <span className="text-sm font-medium">Recording: {recordingTime}s</span>
           </div>
           <Button type="button" onClick={stopRecording} variant="outline" className="w-full">
-            <Square className="w-4 h-4 mr-2" />
+            <Square className="mr-2 h-4 w-4" />
             Stop Recording
           </Button>
         </div>
@@ -258,22 +258,22 @@ export function AudioPreviewPlayer({ audioBlob, onDelete, estimatedDuration }: A
   const theDuration = Number.isFinite(duration) ? duration : estimatedDuration || 0;
 
   return (
-    <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+    <div className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">Recorded: {formatPlaybackTime(currentTime)}</span>
         <div className="flex space-x-2">
           <Button type="button" onClick={isPlaying ? pauseRecording : playRecording} variant="outline" size="sm">
-            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
           <Button type="button" onClick={deleteRecording} variant="outline" size="sm">
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       <div className="space-y-2">
         <Slider value={[currentTime]} max={theDuration} step={0.1} onValueChange={seekTo} className="w-full" />
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <div className="text-muted-foreground flex justify-between text-xs">
           <span>{formatPlaybackTime(currentTime)}</span>
           <span>{formatPlaybackTime(theDuration)}</span>
         </div>

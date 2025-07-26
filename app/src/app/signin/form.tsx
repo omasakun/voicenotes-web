@@ -74,7 +74,7 @@ export function SignInForm() {
           </Button>
 
           <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account?</span>{" "}
+            <span className="text-muted-foreground">{"Don't have an account?"}</span>{" "}
             <a href="/signup" className="hover:underline">
               Sign up
             </a>

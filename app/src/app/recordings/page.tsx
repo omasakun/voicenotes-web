@@ -7,7 +7,7 @@ import { UploadForm } from "./upload-form";
 export default function RecordingsPage() {
   return (
     <AppWrapper>
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <PageHeader title="Voice Notes" description="Upload and transcribe your audio recordings" />
           <UploadRecordingCard />

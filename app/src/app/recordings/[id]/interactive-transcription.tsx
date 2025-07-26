@@ -110,26 +110,23 @@ const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentT
   return (
     <button
       type="button"
-      className={`
-        w-full text-left p-3 rounded-lg cursor-pointer transition-all duration-200 text-sm leading-relaxed
-        ${
-          isActive
-            ? "bg-blue-100 border-2 border-blue-300 shadow-sm"
-            : "bg-gray-50 border border-gray-200 hover:bg-gray-100"
-        }
-      `}
+      className={`w-full cursor-pointer rounded-lg p-3 text-left text-sm leading-relaxed transition-all duration-200 ${
+        isActive
+          ? "border-2 border-blue-300 bg-blue-100 shadow-sm"
+          : "border border-gray-200 bg-gray-50 hover:bg-gray-100"
+      } `}
       onClick={() => onSeek(sentence.start)}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="grid">
-            <div className="flex flex-wrap col-1 row-1 text-transparent select-none">
+            <div className="col-1 row-1 flex select-none flex-wrap text-transparent">
               {sentence.words.map((word, wordIndex) => {
                 const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
                 return <WordBackgroundBlock key={`bg-${word.start}-${wordIndex}`} word={word} isActive={isActive} />;
               })}
             </div>
-            <div className="flex flex-wrap col-1 row-1">
+            <div className="col-1 row-1 flex flex-wrap">
               {sentence.words.map((word, wordIndex) => {
                 const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
                 return (
@@ -147,7 +144,7 @@ const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentT
             </div>
           </div>
         </div>
-        <div className="text-xs text-gray-500 whitespace-nowrap">
+        <div className="whitespace-nowrap text-xs text-gray-500">
           {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
         </div>
       </div>
@@ -165,8 +162,8 @@ const WordBackgroundBlock = memo(function WordBackgroundBlock({
   return (
     <span
       className={cn(
-        "transition-all duration-100 rounded -mx-1 px-1",
-        isActive ? "font-semibold bg-blue-300" : "bg-transparent",
+        "-mx-1 rounded px-1 transition-all duration-100",
+        isActive ? "bg-blue-300 font-semibold" : "bg-transparent",
       )}
     >
       {word.word}
@@ -184,8 +181,7 @@ const WordTextBlock = memo(function WordTextBlock({
   onClick: (e: React.MouseEvent) => void;
 }) {
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: // TODO
-    // biome-ignore lint/a11y/useKeyWithClickEvents: // TODO
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div className={cn("transition-all duration-100", isActive ? "font-semibold text-blue-900" : "")} onClick={onClick}>
       {word.word}
     </div>

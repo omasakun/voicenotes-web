@@ -89,7 +89,7 @@ export function UploadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col gap-6 md:flex-row">
         <div className="flex-1">
           <AudioRecorder onRecordingComplete={handleRecordingComplete} disabled={uploading} />
         </div>
@@ -110,7 +110,7 @@ export function UploadForm() {
               className="hidden"
             />
             {file && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {file.name} ({formatFileSize(file.size)})
               </p>
             )}
@@ -136,7 +136,7 @@ export function UploadForm() {
         <div className="space-y-2">
           <Label>Upload Progress</Label>
           <Progress value={uploadProgress} className="w-full" />
-          <p className="text-sm text-muted-foreground">{uploadProgress.toFixed(2)}% uploaded</p>
+          <p className="text-muted-foreground text-sm">{uploadProgress.toFixed(2)}% uploaded</p>
         </div>
       )}
 

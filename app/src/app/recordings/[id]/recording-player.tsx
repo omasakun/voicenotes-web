@@ -62,13 +62,14 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
       audioPlayer.seek(time);
       audioPlayer.play();
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [audioPlayer.seek, audioPlayer.play],
   );
 
   return (
     <div className="space-y-6">
       {showStickyPlayer && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b shadow-sm">
+        <div className="fixed left-0 right-0 top-0 z-50 border-b bg-white/95 shadow-sm backdrop-blur-sm">
           <div className="container mx-auto px-4 py-2">
             <AudioPlayer audioPlayer={audioPlayer} compact={true} />
           </div>
@@ -103,12 +104,12 @@ function RecordingPlayerHeader({ recording }: { recording: AudioRecording }) {
   return (
     <div className="flex items-center justify-between">
       <Button variant="outline" onClick={() => window.history.back()}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
+        <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Recordings
       </Button>
       <Button variant="outline" asChild>
         <a href={`/api/audio/${recording.id}`} download={recording.originalName}>
-          <Download className="h-4 w-4 mr-2" />
+          <Download className="mr-2 h-4 w-4" />
           Download
         </a>
       </Button>
@@ -147,7 +148,7 @@ function RecordingInfo({ recording }: { recording: AudioRecording }) {
 
   return (
     <div className="flex items-start justify-between">
-      <div className="space-y-2 flex-1">
+      <div className="flex-1 space-y-2">
         {isEditingTitle ? (
           <div className="flex items-center gap-2">
             <Input
@@ -228,8 +229,8 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
         <Button variant="outline" size="sm" onClick={reset}>
           <RotateCcw className="h-3 w-3" />
         </Button>
-        <div className="flex-1 flex items-center gap-3">
-          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(sliderValue)}</span>
+        <div className="flex flex-1 items-center gap-3">
+          <span className="text-muted-foreground min-w-[3rem] text-sm">{formatPlaybackTime(sliderValue)}</span>
           <Slider
             min={0}
             max={duration || 0}
@@ -238,7 +239,7 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
             onValueChange={handleSeek}
             className="flex-1"
           />
-          <span className="text-sm text-muted-foreground min-w-[3rem]">{formatPlaybackTime(duration)}</span>
+          <span className="text-muted-foreground min-w-[3rem] text-sm">{formatPlaybackTime(duration)}</span>
         </div>
       </div>
     );
@@ -262,7 +263,7 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
             onValueChange={handleSeek}
             className="w-full"
           />
-          <div className="flex justify-between text-sm text-muted-foreground">
+          <div className="text-muted-foreground flex justify-between text-sm">
             <span>{formatPlaybackTime(sliderValue)}</span>
             <span>{formatPlaybackTime(duration)}</span>
           </div>
@@ -277,14 +278,14 @@ function TranscriptionProgress({ progress }: { progress: number }) {
     <div className="space-y-2">
       <Label>Transcription Progress</Label>
       <Progress value={progress} className="w-full" />
-      <p className="text-sm text-muted-foreground">{progress.toFixed(2)}% complete</p>
+      <p className="text-muted-foreground text-sm">{progress.toFixed(2)}% complete</p>
     </div>
   );
 }
 
 function TranscriptionError({ error }: { error: string | null }) {
   return (
-    <div className="p-4 border border-red-200 bg-red-50 rounded-lg text-sm text-red-800 space-y-2">
+    <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
       <div className="font-bold">Transcription Error</div>
       <p>{error || "An unknown error occurred"}</p>
     </div>

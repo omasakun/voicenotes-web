@@ -1,6 +1,5 @@
 export class Deferred<T> implements Promise<T> {
   [Symbol.toStringTag] = "Deferred";
-  // biome-ignore lint: ok
   readonly then: Promise<T>["then"];
   readonly catch: Promise<T>["catch"];
   readonly finally: Promise<T>["finally"];
@@ -13,7 +12,6 @@ export class Deferred<T> implements Promise<T> {
       // @ts-expect-error
       this.reject = reject;
     });
-    // biome-ignore lint: ok
     this.then = promise.then.bind(promise);
     this.catch = promise.catch.bind(promise);
     this.finally = promise.finally.bind(promise);

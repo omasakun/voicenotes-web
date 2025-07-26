@@ -57,7 +57,7 @@ export function RecordingsList() {
       queryClient.invalidateQueries({ queryKey: trpc.recordings.listAll.queryKey() });
     }, 1000);
     return () => clearInterval(timer);
-  }, [recordings, queryClient, trpc.recordings.list, trpc.recordings.listAll.queryKey]);
+  }, [recordings, queryClient, trpc.recordings.list, trpc.recordings.listAll]);
 
   const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this recording?")) {
@@ -72,19 +72,19 @@ export function RecordingsList() {
   return (
     <div className="space-y-6">
       <div className="relative">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Search className="text-muted-foreground absolute left-2 top-2.5 h-4 w-4" />
         <Input placeholder="Search recordings..." onChange={(e) => setSearch(e.target.value)} className="pl-10" />
       </div>
 
       {isLoading && (
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p>Loading recordings...</p>
         </div>
       )}
 
       {!isLoading && recordings.length === 0 && (
-        <div className="text-center py-8">
-          <FileAudio className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+        <div className="py-8 text-center">
+          <FileAudio className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
           <p className="text-lg font-medium">No recordings found</p>
           <p className="text-muted-foreground">
             {search ? "Try adjusting your search terms" : "Upload your first recording to get started"}
@@ -94,10 +94,10 @@ export function RecordingsList() {
 
       <div className="space-y-4">
         {recordings.map((recording) => (
-          <Card key={recording.id} className="hover:shadow-md transition-shadow">
+          <Card key={recording.id} className="transition-shadow hover:shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between gap-2">
-                <a href={`/recordings/${recording.id}`} className="text-lg p-0 hover:underline">
+                <a href={`/recordings/${recording.id}`} className="p-0 text-lg hover:underline">
                   {recording.title}
                 </a>
                 <Badge className={getStatusColor(recording.status)}>{getStatusText(recording.status)}</Badge>

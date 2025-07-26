@@ -52,14 +52,14 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
   }
 
   return (
-    <nav className="bg-white border-b border-gray-200 shadow-sm">
-      <div className="container mx-auto px-4 flex items-center justify-between h-16 gap-4">
+    <nav className="border-b border-gray-200 bg-white shadow-sm">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-4 px-4">
         <a href="/recordings" className="flex items-center gap-2">
           <FileAudio className="h-6 w-6 text-blue-600" />
           <span className="text-xl font-bold text-gray-900">Voicenotes</span>
         </a>
 
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden items-center gap-2 md:flex">
           <NavigationButton href="/recordings" icon={FileAudio} label="Recordings" isActive={isActive("/recordings")} />
           <NavigationButton href="/account" icon={UserIcon} label="Account" isActive={isActive("/account")} />
           {user?.role === "admin" && (
@@ -68,7 +68,7 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
             <span className="text-sm text-gray-700">{user?.name || ""}</span>
             {user?.role === "admin" && (
               <Badge variant="outline" className="text-xs">
@@ -87,7 +87,7 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
             </Button>
           ) : (
             <Button variant="outline" size="sm" onClick={handleSignOut} className="hidden md:flex">
-              <LogOut className="h-4 w-4 mr-2" />
+              <LogOut className="mr-2 h-4 w-4" />
               Sign Out
             </Button>
           )}

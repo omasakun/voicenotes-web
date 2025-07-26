@@ -222,7 +222,6 @@ class TranscriptionQueue {
     }
   }
 
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: ok
   private async getAudioDuration(filePath: string): Promise<number> {
     try {
       const fullPath = join(process.cwd(), filePath);
@@ -248,7 +247,6 @@ class TranscriptionQueue {
     }
   }
 
-  // biome-ignore lint/correctness/noUnusedPrivateClassMembers: fallback method for OpenAI
   private async transcribeWithOpenAI(filePath: string): Promise<WhisperVerboseResponse> {
     const fullPath = join(process.cwd(), filePath);
 

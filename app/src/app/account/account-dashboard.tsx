@@ -37,7 +37,7 @@ export function AccountDashboard({ user: initialUser }: { user: User }) {
 
       <AccountInfoCard user={user} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Recordings"
           icon={FileAudio}
@@ -72,20 +72,20 @@ export function AccountDashboard({ user: initialUser }: { user: User }) {
         <CardContent className="space-y-4">
           <div>
             <p className="font-medium">Finished</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {completedRecordings} recording{completedRecordings !== 1 ? "s" : ""} successfully transcribed
             </p>
           </div>
           <div>
             <p className="font-medium">Processing</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {processingRecordings} recording{processingRecordings !== 1 ? "s" : ""} being transcribed
             </p>
           </div>
 
           <div>
             <p className="font-medium">Failed</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {failedRecordings} recording{failedRecordings !== 1 ? "s" : ""} failed to transcribe
             </p>
           </div>
@@ -132,7 +132,7 @@ function AccountInfoCard({ user }: { user: User }) {
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <AccountInfoField label="Username" value={user.name} edit={editNameHandler} />
           <AccountInfoField label="Email" value={user.email} />
           <AccountInfoField label="Role" value={user.role || "user"} />
@@ -254,7 +254,7 @@ function AccountInfoField({ label, value, edit }: AccountInfoFieldProps) {
 
   return (
     <div>
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-muted-foreground text-sm font-medium">{label}</p>
       {isEditing ? (
         <div className="flex items-center gap-2" key="edit-field">
           <Input
@@ -306,7 +306,7 @@ function StatsCard({ title, icon: Icon, value, description }: StatsCardProps) {
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold">{value}</p>
-        {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        {description && <p className="text-muted-foreground text-xs">{description}</p>}
       </CardContent>
     </Card>
   );

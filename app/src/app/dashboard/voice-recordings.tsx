@@ -66,7 +66,7 @@ export function VoiceRecordings() {
             disabled={rescheduleAllFailedMutation.isPending}
             variant="outline"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Reschedule All Failed ({failedCount})
           </Button>
         )}
@@ -75,7 +75,7 @@ export function VoiceRecordings() {
         {isLoading ? (
           <div>Loading recordings...</div>
         ) : !recordings?.length ? (
-          <div className="text-center text-muted-foreground py-8">No recordings found</div>
+          <div className="text-muted-foreground py-8 text-center">No recordings found</div>
         ) : (
           <Table>
             <TableHeader>
@@ -105,7 +105,7 @@ export function VoiceRecordings() {
                       onClick={() => handleReschedule(recording.id)}
                       disabled={rescheduleRecordingMutation.isPending}
                     >
-                      <RefreshCw className="h-3 w-3 mr-1" />
+                      <RefreshCw className="mr-1 h-3 w-3" />
                       Reschedule
                     </Button>
                   </TableCell>

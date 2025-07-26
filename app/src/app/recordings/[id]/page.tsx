@@ -7,7 +7,7 @@ export default function RecordingPage({ recording }: { recording: AudioRecording
 
   return (
     <AppWrapper>
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         {isProcessing ? <LiveRecordingPlayer recording={recording} /> : <RecordingPlayer recording={recording} />}
       </div>
     </AppWrapper>

@@ -60,7 +60,7 @@ export function CreateInvitationButton() {
     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
       <DialogTrigger asChild>
         <Button>
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="mr-2 h-4 w-4" />
           Create Invitation
         </Button>
       </DialogTrigger>
@@ -156,7 +156,7 @@ export function MyInvitationsCard() {
     <Card>
       <CardHeader>
         <CardTitle>My Invitations</CardTitle>
-        <CardDescription>Invitations you've created to invite others to join.</CardDescription>
+        <CardDescription>{"Invitations you've created to invite others to join."}</CardDescription>
         <CardAction>
           <CreateInvitationButton />
         </CardAction>
@@ -182,7 +182,7 @@ export function MyInvitationsCard() {
                     <TableRow key={invitation.id}>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                          <code className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm">
                             {invitation.code}
                           </code>
                           <Button variant="ghost" size="sm" onClick={() => copyInvitationCode(invitation.code)}>
@@ -195,9 +195,9 @@ export function MyInvitationsCard() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={statusInfo.variant}>
-                          {statusInfo.status === "active" && <CheckCircle className="h-3 w-3 mr-1" />}
-                          {statusInfo.status === "expired" && <XCircle className="h-3 w-3 mr-1" />}
-                          {statusInfo.status === "used" && <Clock className="h-3 w-3 mr-1" />}
+                          {statusInfo.status === "active" && <CheckCircle className="mr-1 h-3 w-3" />}
+                          {statusInfo.status === "expired" && <XCircle className="mr-1 h-3 w-3" />}
+                          {statusInfo.status === "used" && <Clock className="mr-1 h-3 w-3" />}
                           {statusInfo.label}
                         </Badge>
                       </TableCell>
@@ -228,12 +228,12 @@ export function MyInvitationsCard() {
               </TableBody>
             </Table>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-muted-foreground py-8 text-center">
               No invitations created yet. Create your first invitation to get started.
             </div>
           )
         ) : (
-          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+          <div className="text-muted-foreground py-8 text-center">Loading...</div>
         )}
       </CardContent>
     </Card>
@@ -283,14 +283,14 @@ export function AllInvitationsCard() {
                 return (
                   <TableRow key={invitation.id}>
                     <TableCell>
-                      <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm">
+                      <code className="bg-muted relative rounded px-[0.3rem] py-[0.2rem] font-mono text-sm">
                         {invitation.code}
                       </code>
                     </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{invitation.inviter.name}</div>
-                        <div className="text-sm text-muted-foreground">{invitation.inviter.email}</div>
+                        <div className="text-muted-foreground text-sm">{invitation.inviter.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -320,7 +320,7 @@ export function AllInvitationsCard() {
               })
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-muted-foreground text-center">
                   Loading invitations...
                 </TableCell>
               </TableRow>

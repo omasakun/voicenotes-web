@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function DashboardPage() {
   return (
     <AppWrapper>
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <PageHeader title="Dashboard" description="As an admin, you can manage users and invitations." />
 
