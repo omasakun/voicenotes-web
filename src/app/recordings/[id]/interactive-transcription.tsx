@@ -200,7 +200,7 @@ function getSentences(wordTimings: WordTiming[]): Sentence[] {
     currentSentence.push(wordTiming);
 
     const endsWithPunctuation = /[.!?。！？]/.test(wordTiming.word);
-    const sentenceTooLong = currentSentence.length >= 100;
+    const sentenceTooLong = currentSentence.length >= 500;
 
     if (endsWithPunctuation || sentenceTooLong) {
       if (currentSentence.length > 0) {

@@ -8,6 +8,7 @@ const WHISPER_PASSWORD = process.env.WHISPER_PASSWORD;
 
 interface FasterWhisperServerOptions {
   language?: string;
+  initialPrompt?: string;
   onInfo?: (info: WhisperInfo) => void;
   onProgress?: (progress: number, message?: string) => void;
   onDelta?: (partialResult: WhisperDelta) => void;
@@ -17,7 +18,7 @@ export async function transcribeWithFasterWhisper(
   audioPath: string,
   options: Omit<FasterWhisperServerOptions, "useUploadEndpoint"> = {},
 ): Promise<WhisperVerboseResponse> {
-  const { language, onInfo, onProgress, onDelta } = options;
+  const { language, initialPrompt, onInfo, onProgress, onDelta } = options;
 
   const controller = new AbortController();
   let response: Response;
@@ -29,7 +30,8 @@ export async function transcribeWithFasterWhisper(
     const formData = new FormData();
     const audioFile = await openAsBlob(audioPath);
     formData.append("audio", audioFile);
-    formData.append("language", language || "");
+    if (language) formData.append("language", language);
+    if (initialPrompt) formData.append("initial_prompt", initialPrompt);
 
     response = await fetch(endpoint, {
       method: "POST",
@@ -45,7 +47,7 @@ export async function transcribeWithFasterWhisper(
         "Content-Type": "application/json",
         ...authHeader,
       },
-      body: JSON.stringify({ audio_path: audioPath, language }),
+      body: JSON.stringify({ audio_path: audioPath, language, initial_prompt: initialPrompt }),
       signal: controller.signal,
     });
   }

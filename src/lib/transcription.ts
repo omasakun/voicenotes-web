@@ -132,6 +132,7 @@ class TranscriptionQueue {
 
       const fullPath = join(process.cwd(), convertedFilePath);
       const whisperResponse = await transcribeWithFasterWhisper(fullPath, {
+        initialPrompt: "こんにちは。天気、晴れていますね！うまくいくと良いですねー。",
         async onProgress(progress) {
           const now = Date.now();
           if (now - lastProgressUpdate >= PROGRESS_DEBOUNCE_MS || progress >= 100) {

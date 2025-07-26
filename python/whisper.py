@@ -19,7 +19,7 @@ class Whisper:
   async def unload(self):
     self.model = None
 
-  async def transcribe(self, req: Request, audio_path: str | BytesIO, language: str = None):
+  async def transcribe(self, req: Request, audio_path: str | BytesIO, language: str = None, initial_prompt: str = None):
     await self.load()
     if isinstance(audio_path, str) and not os.path.exists(audio_path):
       yield {"type": "error", "error": f"Audio file not found: {audio_path}"}
@@ -28,7 +28,13 @@ class Whisper:
     yield {"type": "status", "message": "Starting transcription", "progress": 2}
 
     segments_iter, info = self.model.transcribe(
-        audio_path, language=language, word_timestamps=True, vad_filter=True, vad_parameters=dict(min_silence_duration_ms=500))
+        audio_path,
+        language=language,
+        word_timestamps=True,
+        vad_filter=True,
+        vad_parameters=dict(min_silence_duration_ms=500),
+        initial_prompt=initial_prompt,
+    )
 
     yield {"type": "info", "language": info.language, "duration": info.duration}
 

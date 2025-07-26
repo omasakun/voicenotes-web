@@ -57,10 +57,11 @@ class MyLock(asyncio.Lock):
     self.mtime = datetime.now()
     await super().acquire(*args, **kwargs)
     self.mtime = datetime.now()
+    return True
 
-  async def release(self, *args, **kwargs):
+  def release(self, *args, **kwargs):
     self.mtime = datetime.now()
-    await super().release(*args, **kwargs)
+    super().release(*args, **kwargs)
     self.mtime = datetime.now()
 
   def is_idle_for(self, seconds: int) -> bool:
@@ -85,6 +86,7 @@ def basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
 class TranscribeRequest(BaseModel):
   audio_path: str
   language: str | None = None
+  initial_prompt: str | None = None
 
 def to_plain(obj):
   if dataclasses.is_dataclass(obj):
@@ -100,7 +102,7 @@ async def transcribe_audio(req: Request, body: TranscribeRequest, _auth=Depends(
   async def event_stream():
     try:
       async with lock:
-        async for event in whisper.transcribe(req, body.audio_path, body.language):
+        async for event in whisper.transcribe(req, body.audio_path, body.language, initial_prompt=body.initial_prompt):
           yield {"data": json.dumps(event, default=to_plain)}
           await asyncio.sleep(0)  # Yield control to the event loop
     except Exception as e:
@@ -110,18 +112,24 @@ async def transcribe_audio(req: Request, body: TranscribeRequest, _auth=Depends(
 
   return EventSourceResponse(event_stream())
 
-class TranscribeUploadRequest(BaseModel):
-  language: str | None = None
-
 @app.post("/transcribe-upload")
-async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), language: str = Form(None), _auth=Depends(basic_auth)):
+async def transcribe_audio_upload(
+    req: Request,
+    audio: UploadFile = File(...),
+    language: str = Form(None),
+    initial_prompt: str = Form(None),
+    _auth=Depends(basic_auth),
+):
   if language == "": language = None
+  if initial_prompt == "": initial_prompt = None
+
+  content = await audio.read()
 
   async def event_stream():
     try:
       async with lock:
         audio_buffer = BytesIO(content)
-        async for event in whisper.transcribe(req, audio_buffer, language):
+        async for event in whisper.transcribe(req, audio_buffer, language, initial_prompt=initial_prompt):
           yield {"data": json.dumps(event, default=to_plain)}
           await asyncio.sleep(0)
 
@@ -130,7 +138,6 @@ async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), l
       print(f"Error during transcription: {formatted}")
       yield {"data": json.dumps({"type": "error", "error": formatted}, default=to_plain)}
 
-  content = await audio.read()
   return EventSourceResponse(event_stream())
 
 class HealthCheckResponse(BaseModel):
