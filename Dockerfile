@@ -42,6 +42,10 @@ uv cache clean
 EOF
 
 COPY . .
+RUN <<EOF
+uv sync --no-dev
+uv cache clean
+EOF
 
 WORKDIR /app/python
 CMD ["uv", "run", "python", "server.py"]
