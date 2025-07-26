@@ -1,8 +1,4 @@
-"use client";
-
 import { FileAudio, LogOut, type LucideIcon, Menu, Settings, UserIcon } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,14 +11,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useStopImpersonatingMutation } from "@/hooks/auth-admin";
 import { authClient } from "@/lib/auth-client";
+import { TRPCReactProvider } from "@/trpc/client";
+import type { User } from "@/lib/auth";
 
 const targetPaths = ["/account", "/dashboard", "/recordings"];
 
-export function Navigation() {
-  const router = useRouter();
-  const pathname = usePathname();
+export function Navigation({ pathname, user }: { pathname: string; user: User }) {
+  return (
+    <TRPCReactProvider>
+      <NavigationBody pathname={pathname} user={user} />
+    </TRPCReactProvider>
+  );
+}
+
+function NavigationBody({ pathname, user: initialUser }: { pathname: string; user: User }) {
   const { data: session } = authClient.useSession();
-  const user = session?.user;
+  const user = session?.user || initialUser;
   const stopImpersonatingMutation = useStopImpersonatingMutation();
 
   const isImpersonating = session?.session?.impersonatedBy;
@@ -31,7 +35,7 @@ export function Navigation() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          router.push("/");
+          window.location.href = "/";
         },
       },
     });
@@ -50,10 +54,10 @@ export function Navigation() {
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 flex items-center justify-between h-16 gap-4">
-        <Link href="/recordings" className="flex items-center gap-2">
+        <a href="/recordings" className="flex items-center gap-2">
           <FileAudio className="h-6 w-6 text-blue-600" />
           <span className="text-xl font-bold text-gray-900">Voicenotes</span>
-        </Link>
+        </a>
 
         <div className="hidden md:flex items-center gap-2">
           <NavigationButton href="/recordings" icon={FileAudio} label="Recordings" isActive={isActive("/recordings")} />
@@ -98,10 +102,28 @@ export function Navigation() {
               <DropdownMenuContent collisionPadding={8}>
                 <DropdownMenuLabel>Navigation</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/recordings")}>Recordings</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/account")}>Account</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.location.href = "/recordings";
+                  }}
+                >
+                  Recordings
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.location.href = "/account";
+                  }}
+                >
+                  Account
+                </DropdownMenuItem>
                 {user?.role === "admin" && (
-                  <DropdownMenuItem onClick={() => router.push("/dashboard")}>Admin</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      window.location.href = "/dashboard";
+                    }}
+                  >
+                    Admin
+                  </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 {isImpersonating ? (
@@ -131,11 +153,11 @@ interface NavigationButtonProps {
 export function NavigationButton({ href, icon, label, isActive }: NavigationButtonProps) {
   const IconComponent = icon;
   return (
-    <Link href={href}>
+    <a href={href}>
       <Button variant={isActive ? "default" : "ghost"} className="flex items-center gap-2">
         <IconComponent className="h-4 w-4" />
         {label}
       </Button>
-    </Link>
+    </a>
   );
 }

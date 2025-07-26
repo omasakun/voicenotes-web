@@ -1,28 +1,20 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { AppWrapper } from "@/components/app-wrapper";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth } from "@/lib/auth";
 import { RecordingsList } from "./recordings-list";
 import { UploadForm } from "./upload-form";
 
-export default async function RecordingsPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    return redirect("/signin");
-  }
-
+export default function RecordingsPage() {
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="space-y-8">
-        <PageHeader title="Voice Notes" description="Upload and transcribe your audio recordings" />
-        <UploadRecordingCard />
-        <RecordingsListCard />
+    <AppWrapper>
+      <div className="container mx-auto py-8 px-4">
+        <div className="space-y-8">
+          <PageHeader title="Voice Notes" description="Upload and transcribe your audio recordings" />
+          <UploadRecordingCard />
+          <RecordingsListCard />
+        </div>
       </div>
-    </div>
+    </AppWrapper>
   );
 }
 

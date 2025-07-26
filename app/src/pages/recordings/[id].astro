@@ -1,0 +1,27 @@
+---
+import RecordingsPage from "@/app/recordings/[id]/page";
+import Layout from "@/layouts/Layout.astro";
+import { prisma } from "@/lib/prisma";
+
+const user = Astro.locals.user;
+const { id } = Astro.params;
+
+if (!user) {
+  return Astro.redirect("/login");
+}
+
+const recording = await prisma.audioRecording.findFirst({
+  where: {
+    id: id,
+    userId: user.id,
+  },
+});
+
+if (!recording) {
+  return Astro.notFound();
+}
+---
+
+<Layout title="Recordings - Voicenotes">
+	<RecordingsPage client:load recording={recording} />
+</Layout>

@@ -1,12 +1,12 @@
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
-import { type NextRequest, NextResponse } from "next/server";
+import type { APIRoute } from "astro";
 import z from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { queueTranscription } from "@/lib/transcription";
-import { parseFormData } from "@/lib/utils-server";
+import { JsonResponse, parseFormData } from "@/lib/utils-server";
 
 const allowedExtensions = ["mp3", "wav", "m4a", "mp4", "webm", "ogg"];
 
@@ -14,7 +14,7 @@ const fieldsSchema = z.object({
   title: z.string().min(1, "Title is required"),
 });
 
-export async function POST(request: NextRequest) {
+export const POST: APIRoute = async ({ request }) => {
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -22,7 +22,10 @@ export async function POST(request: NextRequest) {
     });
 
     if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     const fields: Record<string, string> = {};
@@ -33,21 +36,18 @@ export async function POST(request: NextRequest) {
         fields[field.name] = field.value;
       } else if (field.type === "file") {
         if (field.name !== "audio") {
-          return NextResponse.json({ error: "Invalid field name" }, { status: 400 });
+          return JsonResponse({ error: "Invalid field name" }, 400);
         }
 
         if (audioFile) {
-          return NextResponse.json({ error: "Multiple audio files are not allowed" }, { status: 400 });
+          return JsonResponse({ error: "Multiple audio files are not allowed" }, 400);
         }
 
         // Check file extension
         const originalName = field.filename;
         const fileExtension = originalName.split(".").pop()?.toLowerCase() || "";
         if (!allowedExtensions.includes(fileExtension)) {
-          return NextResponse.json(
-            { error: `Invalid file type. Supported formats: ${allowedExtensions.join(", ")}` },
-            { status: 400 },
-          );
+          return JsonResponse({ error: `Invalid file type. Supported formats: ${allowedExtensions.join(", ")}` }, 400);
         }
 
         // Generate unique file ID and path
@@ -73,12 +73,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!audioFile) {
-      return NextResponse.json({ error: "No audio file provided" }, { status: 400 });
+      return JsonResponse({ error: "No audio file provided" }, 400);
     }
 
     const parsedFields = fieldsSchema.safeParse(fields);
     if (!parsedFields.success) {
-      return NextResponse.json({ error: "Invalid fields", details: parsedFields.error }, { status: 400 });
+      return JsonResponse({ error: "Invalid fields", details: parsedFields.error }, 400);
     }
 
     // Save to database
@@ -99,13 +99,13 @@ export async function POST(request: NextRequest) {
       // TODO: what to do here?
     }
 
-    return NextResponse.json({
+    return JsonResponse({
       id: audioRecording.id,
       message: "Audio uploaded successfully",
       status: "pending",
     });
   } catch (error) {
     console.error("Audio upload error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return JsonResponse({ error: "Internal server error" }, 500);
   }
-}
+};

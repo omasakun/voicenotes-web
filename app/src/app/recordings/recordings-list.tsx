@@ -2,8 +2,6 @@
 
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Clock, FileAudio, Play, Search, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +16,6 @@ import { useTRPC } from "@/trpc/client";
 export function RecordingsList() {
   const [search, setSearch] = useState("");
   const queryClient = useQueryClient();
-  const router = useRouter();
   const trpc = useTRPC();
 
   const { data, isLoading, fetchNextPage, hasNextPage } = useInfiniteQuery(
@@ -69,7 +66,7 @@ export function RecordingsList() {
   };
 
   const handlePlay = (id: string) => {
-    router.push(`/recordings/${id}`);
+    window.location.href = `/recordings/${id}`;
   };
 
   return (
@@ -100,9 +97,9 @@ export function RecordingsList() {
           <Card key={recording.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center justify-between gap-2">
-                <Link href={`/recordings/${recording.id}`} className="text-lg p-0 hover:underline">
+                <a href={`/recordings/${recording.id}`} className="text-lg p-0 hover:underline">
                   {recording.title}
-                </Link>
+                </a>
                 <Badge className={getStatusColor(recording.status)}>{getStatusText(recording.status)}</Badge>
               </CardTitle>
               <CardDescription className="flex items-center gap-2 text-sm">

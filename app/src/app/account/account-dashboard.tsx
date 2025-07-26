@@ -17,8 +17,10 @@ import { authClient } from "@/lib/auth-client";
 import { formatDate, formatDuration, formatFileSize } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 
-export function AccountDashboard({ user }: { user: User }) {
+export function AccountDashboard({ user: initialUser }: { user: User }) {
   const trpc = useTRPC();
+  const { data: session } = authClient.useSession();
+  const user = session?.user || initialUser;
   const { data: stats } = useQuery(trpc.account.stats.queryOptions());
 
   const totalRecordings = stats?.totalRecordings || 0;

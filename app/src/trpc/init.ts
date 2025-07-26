@@ -1,20 +1,18 @@
 import { initTRPC } from "@trpc/server";
-import { headers } from "next/headers";
-import { cache } from "react";
 import superjson from "superjson";
 import { auth } from "@/lib/auth";
 
 // https://trpc.io/docs/server/context
-export const createTRPCContext = cache(async () => {
+export const createTRPCContext = async (ctx: { req: Request }) => {
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: ctx.req.headers,
   });
 
   return {
     session: session?.session,
     user: session?.user,
   };
-});
+};
 
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 const t = initTRPC.context<Context>().create({

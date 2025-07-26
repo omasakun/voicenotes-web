@@ -2,8 +2,6 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -15,10 +13,18 @@ import { useTRPC } from "@/trpc/client";
 
 export function SignUpForm() {
   const trpc = useTRPC();
-  const searchParams = useSearchParams();
-  const [invitationCode, setInvitationCode] = useState(searchParams.get("code") || "");
+  const [invitationCode, setInvitationCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const emailInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Get invitation code from URL on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+    if (code) {
+      setInvitationCode(code);
+    }
+  }, []);
 
   const { data: invitationValidation, isLoading: isValidatingInvitation } = useQuery(
     trpc.invitations.validate.queryOptions(
@@ -39,9 +45,7 @@ export function SignUpForm() {
       return data;
     },
     onSuccess: () => {
-      // TODO: why router.push() does not work here?
-      // router.push("/recordings");
-      location.href = "/recordings";
+      window.location.href = "/recordings";
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -189,9 +193,9 @@ export function SignUpForm() {
 
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Already have an account?</span>{" "}
-            <Link href="/signin" className="hover:underline">
+            <a href="/signin" className="hover:underline">
               Sign in
-            </Link>
+            </a>
           </div>
         </form>
       </CardContent>

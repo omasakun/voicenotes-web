@@ -1,28 +1,32 @@
-import { getSessionCookie } from "better-auth/cookies";
-import { type NextRequest, NextResponse } from "next/server";
+import { defineMiddleware } from "astro:middleware";
+import { auth } from "@/lib/auth";
 
-export async function middleware(request: NextRequest) {
-  const sessionCookie = getSessionCookie(request);
-  const pathname = request.nextUrl.pathname;
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { url } = context;
+  const session = await auth.api.getSession({
+    headers: context.request.headers,
+  });
 
-  if (["/signup", "/signin"].includes(pathname)) {
-    if (sessionCookie) {
-      return NextResponse.redirect(new URL("/recordings", request.url));
+  if (session) {
+    context.locals.user = session.user;
+    context.locals.session = session.session;
+  } else {
+    context.locals.user = null;
+    context.locals.session = null;
+  }
+
+  if (["/signup", "/signin"].includes(url.pathname)) {
+    if (session) {
+      return context.redirect("/recordings");
     }
-    return NextResponse.next();
   }
 
-  // THIS IS NOT SECURE!
-  // This is the recommended approach to optimistically redirect users
-  // We recommend handling auth checks in each page/route
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.url));
+  const protectedPaths = ["/account", "/dashboard", "/recordings"];
+  if (protectedPaths.some((path) => url.pathname.startsWith(path))) {
+    if (!session) {
+      return context.redirect("/signin");
+    }
   }
 
-  return NextResponse.next();
-}
-
-// TODO
-export const config = {
-  matcher: ["/signup", "/signin", "/account/:path*", "/dashboard/:path*", "/recordings/:path*"],
-};
+  return next();
+});

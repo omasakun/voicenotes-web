@@ -1,20 +1,13 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { AppWrapper } from "@/components/app-wrapper";
+import type { User } from "@/lib/auth";
 import { AccountDashboard } from "./account-dashboard";
 
-export default async function AccountPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.user) {
-    return redirect("/signin");
-  }
-
+export default function AccountPage({ user }: { user: User }) {
   return (
-    <div className="container mx-auto py-8 px-4">
-      <AccountDashboard user={session.user} />
-    </div>
+    <AppWrapper>
+      <div className="container mx-auto py-8 px-4">
+        <AccountDashboard user={user} />
+      </div>
+    </AppWrapper>
   );
 }

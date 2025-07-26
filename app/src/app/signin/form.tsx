@@ -2,8 +2,6 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { AlertCircle } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -14,8 +12,6 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 
 export function SignInForm() {
-  const router = useRouter();
-
   const [error, setError] = useState<string | null>(null);
 
   const loginMutation = useMutation({
@@ -25,7 +21,7 @@ export function SignInForm() {
       return data;
     },
     onSuccess: () => {
-      router.push("/recordings");
+      window.location.href = "/recordings";
     },
     onError: (error: Error) => {
       setError(error.message);
@@ -79,9 +75,9 @@ export function SignInForm() {
 
           <div className="text-center text-sm">
             <span className="text-muted-foreground">Don't have an account?</span>{" "}
-            <Link href="/signup" className="hover:underline">
+            <a href="/signup" className="hover:underline">
               Sign up
-            </Link>
+            </a>
           </div>
         </form>
       </CardContent>

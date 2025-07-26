@@ -1,0 +1,13 @@
+---
+import DashboardPage from "@/app/dashboard/page";
+import Layout from "@/layouts/Layout.astro";
+
+const user = Astro.locals.user;
+if (user?.role !== "admin") {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Dashboard - Voicenotes">
+	<DashboardPage client:load />
+</Layout>

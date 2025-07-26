@@ -1,0 +1,31 @@
+---
+import { Navigation } from "@/components/navigation";
+import "@/styles/global.css";
+import { Font } from "astro:assets";
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Voicenotes", description = "Transcribe your voice notes to text with ease." } = Astro.props;
+const url = new URL(Astro.request.url);
+const user = Astro.locals.user;
+---
+
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+	</head>
+	<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <Font cssVariable='--font-noto-sans-jp' preload />
+    <Font cssVariable='--font-inconsolata' preload />
+    <Navigation client:load pathname={url.pathname} user={user} />
+    <slot />
+	</body>
+</html>

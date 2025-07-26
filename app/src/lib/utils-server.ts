@@ -174,3 +174,10 @@ export function changeExtension(filePath: string, newExt: string): string {
   const parsed = path.parse(filePath);
   return path.format({ ...parsed, base: undefined, ext: newExt });
 }
+
+export function JsonResponse(data: any, status: number = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}

@@ -3,11 +3,9 @@
 import type { AudioRecording } from "@prisma/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useIntersection } from "react-use";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useDebouncedCallback } from "use-debounce";
+import { useDebounceCallback, useIntersectionObserver } from "usehooks-ts";
 import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,19 +44,18 @@ export function LiveRecordingPlayer({ recording: initialRecording }: RecordingPl
 }
 
 export function RecordingPlayer({ recording }: RecordingPlayerProps) {
-  const playerRef = useRef<HTMLDivElement>(null);
   const audioPlayer = usePlayer({
     src: `/api/audio/${recording.id}`,
     initialDuration: recording.duration,
   });
 
-  const intersection = useIntersection(playerRef as any, {
+  const [playerRef, isIntersecting, observer] = useIntersectionObserver({
     root: null,
     rootMargin: "0px",
     threshold: 0.1,
   });
 
-  const showStickyPlayer = intersection && !intersection.isIntersecting;
+  const showStickyPlayer = observer && !isIntersecting;
 
   const handleSeek = useCallback(
     (time: number) => {
@@ -103,10 +100,9 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
 }
 
 function RecordingPlayerHeader({ recording }: { recording: AudioRecording }) {
-  const router = useRouter();
   return (
     <div className="flex items-center justify-between">
-      <Button variant="outline" onClick={() => router.back()}>
+      <Button variant="outline" onClick={() => window.history.back()}>
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Recordings
       </Button>
@@ -121,7 +117,6 @@ function RecordingPlayerHeader({ recording }: { recording: AudioRecording }) {
 }
 
 function RecordingInfo({ recording }: { recording: AudioRecording }) {
-  const router = useRouter();
   const trpc = useTRPC();
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState(recording.title || "");
@@ -131,7 +126,7 @@ function RecordingInfo({ recording }: { recording: AudioRecording }) {
       onSuccess: () => {
         toast.success("Title updated");
         setIsEditingTitle(false);
-        router.refresh();
+        window.location.reload();
       },
       onError: (error: any) => {
         toast.error(error.message);
@@ -208,9 +203,7 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
   const { isPlaying, currentTime, duration, togglePlay, reset, seek } = audioPlayer;
   const [sliderValue, setSliderValue] = useState(currentTime);
 
-  const debouncedSeek = useDebouncedCallback((value: number) => {
-    seek(value);
-  }, 100);
+  const debouncedSeek = useDebounceCallback(seek, 100);
 
   const handleSeek = useCallback(
     ([value]: [number]) => {

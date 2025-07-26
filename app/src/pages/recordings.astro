@@ -1,0 +1,13 @@
+---
+import RecordingsPage from "@/app/recordings/page";
+import Layout from "@/layouts/Layout.astro";
+
+const user = Astro.locals.user;
+if (!user) {
+  return Astro.redirect("/login");
+}
+---
+
+<Layout title="Recordings - Voicenotes">
+	<RecordingsPage client:load />
+</Layout>
