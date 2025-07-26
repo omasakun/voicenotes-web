@@ -21,7 +21,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import secrets
 
-load_dotenv("../.env", verbose=True)
+load_dotenv(verbose=True)
 
 HOST = os.getenv("WHISPER_HOST")
 PORT = int(os.getenv("WHISPER_PORT"))
