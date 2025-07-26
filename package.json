@@ -2,14 +2,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "format": "biome check --write"
+    "format": "biome check --write",
+    "whisper:setup": "cd python && uv sync",
+    "whisper:start": "cd python && uv run python server.py",
+    "whisper:deploy": "tsx scripts/deploy-whisper.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.2",
-    "lefthook": "^1.12.2"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "@tsconfig/node22": "^22.0.2",
+    "@types/node": "^22.16.5",
+    "chalk": "^5.4.1",
+    "dotenv": "^17.2.1",
+    "execa": "^9.6.0",
+    "lefthook": "^1.12.2",
+    "tsx": "^4.20.3"
   },
   "packageManager": "pnpm@10.13.1"
 }

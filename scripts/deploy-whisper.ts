@@ -74,7 +74,7 @@ async function main() {
   logSuccess("Docker configured for Artifact Registry");
 
   logStep("Building Docker image");
-  await $withlog`env DOCKER_BUILDKIT=1 docker image build -t ${IMAGE_NAME} .`;
+  await $withlog`env DOCKER_BUILDKIT=1 docker image build -t ${IMAGE_NAME} --build-arg WHISPER_MODEL_NAME=${WHISPER_MODEL_NAME} -f Dockerfile.whisper .`;
   logSuccess("Docker image built");
 
   logStep("Pushing image to Artifact Registry");
