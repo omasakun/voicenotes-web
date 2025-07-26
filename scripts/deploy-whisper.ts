@@ -49,6 +49,7 @@ const WHISPER_COMPUTE_TYPE = process.env.WHISPER_COMPUTE_TYPE!;
 const WHISPER_DEVICE = process.env.WHISPER_DEVICE!;
 const WHISPER_HOST = process.env.WHISPER_HOST!;
 const WHISPER_PORT = process.env.WHISPER_PORT!;
+const WHISPER_SHUTDOWN_TIMEOUT = process.env.WHISPER_SHUTDOWN_TIMEOUT!;
 
 function logStep(msg: string) {
   console.log(chalk.blueBright(`===> ${msg}`));
@@ -89,6 +90,7 @@ async function main() {
     `WHISPER_HOST=${WHISPER_HOST}`,
     `WHISPER_PORT=${WHISPER_PORT}`,
     `WHISPER_PASSWORD=${WHISPER_PASSWORD}`,
+    `WHISPER_SHUTDOWN_TIMEOUT=${WHISPER_SHUTDOWN_TIMEOUT}`,
   ];
 
   const args: string[] = [];

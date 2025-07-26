@@ -29,23 +29,46 @@ MODEL_NAME = os.getenv("WHISPER_MODEL_NAME")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE")
 DEVICE = os.getenv("WHISPER_DEVICE")
 PASSWORD = os.getenv("WHISPER_PASSWORD")
+SHUTDOWN_TIMEOUT = int(os.getenv("WHISPER_SHUTDOWN_TIMEOUT", "-1"))
 
 @asynccontextmanager
 async def lifespan(app):
-  async def auto_unload(timeout_seconds: int = 60):
+  async def auto_task(timeout_seconds: int = 60):
     while True:
-      await asyncio.sleep(10)
-      if lock.locked(): continue
-      if whisper.model and (datetime.now() - whisper.last_access_time > timedelta(seconds=timeout_seconds)):
+      await asyncio.sleep(5)
+
+      if whisper.model and lock.is_idle_for(timeout_seconds):
         print("Unloading model from memory")
         await whisper.unload()
 
-  asyncio.create_task(auto_unload())
+      if SHUTDOWN_TIMEOUT != -1 and lock.is_idle_for(SHUTDOWN_TIMEOUT):
+        print("No activity for a while, shutting down server")
+        signal.raise_signal(signal.SIGINT)
+
+  asyncio.create_task(auto_task())
   yield
+
+class MyLock(asyncio.Lock):
+  def __init__(self):
+    super().__init__()
+    self.mtime = datetime.now()
+
+  async def acquire(self, *args, **kwargs):
+    self.mtime = datetime.now()
+    await super().acquire(*args, **kwargs)
+    self.mtime = datetime.now()
+
+  async def release(self, *args, **kwargs):
+    self.mtime = datetime.now()
+    await super().release(*args, **kwargs)
+    self.mtime = datetime.now()
+
+  def is_idle_for(self, seconds: int) -> bool:
+    return (not self.locked()) and (datetime.now() - self.mtime) > timedelta(seconds=seconds)
 
 app = FastAPI(lifespan=lifespan)
 whisper = Whisper(model_name=MODEL_NAME, compute_type=COMPUTE_TYPE, device=DEVICE)
-lock = asyncio.Lock()
+lock = MyLock()
 security = HTTPBasic()
 
 def basic_auth(credentials: HTTPBasicCredentials = Depends(security)):
@@ -76,16 +99,16 @@ def to_plain(obj):
 async def transcribe_audio(req: Request, body: TranscribeRequest, _auth=Depends(basic_auth)):
   async def event_stream():
     try:
-      async for event in whisper.transcribe(req, body.audio_path, body.language):
-        yield {"data": json.dumps(event, default=to_plain)}
-        await asyncio.sleep(0)  # Yield control to the event loop
+      async with lock:
+        async for event in whisper.transcribe(req, body.audio_path, body.language):
+          yield {"data": json.dumps(event, default=to_plain)}
+          await asyncio.sleep(0)  # Yield control to the event loop
     except Exception as e:
       formatted = format_exception(e)
       print(f"Error during transcription: {formatted}")
       yield {"data": json.dumps({"type": "error", "error": formatted}, default=to_plain)}
 
-  async with lock:
-    return EventSourceResponse(event_stream())
+  return EventSourceResponse(event_stream())
 
 class TranscribeUploadRequest(BaseModel):
   language: str | None = None
@@ -96,19 +119,19 @@ async def transcribe_audio_upload(req: Request, audio: UploadFile = File(...), l
 
   async def event_stream():
     try:
-      audio_buffer = BytesIO(content)
-      async for event in whisper.transcribe(req, audio_buffer, language):
-        yield {"data": json.dumps(event, default=to_plain)}
-        await asyncio.sleep(0)
+      async with lock:
+        audio_buffer = BytesIO(content)
+        async for event in whisper.transcribe(req, audio_buffer, language):
+          yield {"data": json.dumps(event, default=to_plain)}
+          await asyncio.sleep(0)
 
     except Exception as e:
       formatted = format_exception(e)
       print(f"Error during transcription: {formatted}")
       yield {"data": json.dumps({"type": "error", "error": formatted}, default=to_plain)}
 
-  async with lock:
-    content = await audio.read()
-    return EventSourceResponse(event_stream())
+  content = await audio.read()
+  return EventSourceResponse(event_stream())
 
 class HealthCheckResponse(BaseModel):
   status: str

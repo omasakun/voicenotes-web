@@ -11,19 +11,16 @@ class Whisper:
     self.compute_type = compute_type
     self.device = device
     self.model: WhisperModel = None
-    self.last_access_time = datetime.now()
 
   async def load(self):
     if self.model is None:
       self.model = WhisperModel(self.model_name, compute_type=self.compute_type, device=self.device)
-    self.last_access_time = datetime.now()
 
   async def unload(self):
     self.model = None
 
   async def transcribe(self, req: Request, audio_path: str | BytesIO, language: str = None):
     await self.load()
-    self.last_access_time = datetime.now()
     if isinstance(audio_path, str) and not os.path.exists(audio_path):
       yield {"type": "error", "error": f"Audio file not found: {audio_path}"}
       return
