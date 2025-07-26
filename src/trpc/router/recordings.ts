@@ -135,9 +135,9 @@ export const recordingsRouter = createTRPCRouter({
         throw new Error("Recording not found");
       }
 
-      if (recording.status === "PROCESSING") {
-        throw new Error("Cannot reschedule a recording that is processing");
-      }
+      // if (recording.status === "PROCESSING") {
+      //   throw new Error("Cannot reschedule a recording that is processing");
+      // }
 
       // Update status to PENDING and clear error message
       await prisma.audioRecording.update({

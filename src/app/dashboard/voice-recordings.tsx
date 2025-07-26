@@ -99,17 +99,15 @@ export function VoiceRecordings() {
                   <TableCell>{formatDistanceToNow(new Date(recording.createdAt), { addSuffix: true })}</TableCell>
                   <TableCell>{recording.duration ? `${Math.round(recording.duration)}s` : "N/A"}</TableCell>
                   <TableCell>
-                    {recording.status !== "PROCESSING" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleReschedule(recording.id)}
-                        disabled={rescheduleRecordingMutation.isPending}
-                      >
-                        <RefreshCw className="h-3 w-3 mr-1" />
-                        Reschedule
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReschedule(recording.id)}
+                      disabled={rescheduleRecordingMutation.isPending}
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Reschedule
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
