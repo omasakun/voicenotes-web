@@ -139,7 +139,6 @@ class HealthCheckResponse(BaseModel):
   compute_type: str
   device: str
   model_loaded: bool
-  last_access: str | None
 
 @app.get("/health", response_model=HealthCheckResponse)
 async def health_check():
@@ -149,7 +148,6 @@ async def health_check():
       "compute_type": whisper.compute_type,
       "device": whisper.device,
       "model_loaded": whisper.model is not None,
-      "last_access": whisper.last_access_time.isoformat() if whisper.last_access_time else None,
   }
 
 @click.command()
