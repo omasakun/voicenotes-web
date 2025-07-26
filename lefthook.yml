@@ -1,9 +1,15 @@
 # yaml-language-server: $schema=https://json.schemastore.org/lefthook.json
 # https://lefthook.dev/configuration/
-# https://biomejs.dev/recipes/git-hooks/
 
 pre-commit:
   commands:
     format:
-      glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc,css}"
-      run: npm exec biome format --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
+      glob: "*"
+      exclude:
+        - .dockerignore
+        - .gitignore
+        - .prettierignore
+      run: npm exec prettier --ignore-unknown {staged_files}
+    lint:
+      glob: "*.{js,jsx,ts,tsx,astro}"
+      run: npm exec eslint {staged_files}

@@ -5,10 +5,10 @@
   "[python]": {
     "editor.defaultFormatter": "eeyore.yapf"
   },
-  "editor.codeActionsOnSave": {
-    "source.biome": "explicit"
-  },
-  "editor.defaultFormatter": "biomejs.biome",
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [".", "app"],
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "astro"],
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.quickSuggestions": {
     "strings": "on"

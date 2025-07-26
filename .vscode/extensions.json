@@ -1,3 +1,10 @@
 {
-  "recommendations": ["biomejs.biome", "bradlc.vscode-tailwindcss", "editorconfig.editorconfig", "prisma.prisma"]
+  "recommendations": [
+    "astro-build.astro-vscode",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "editorconfig.editorconfig",
+    "esbenp.prettier-vscode",
+    "prisma.prisma"
+  ]
 }

@@ -3,10 +3,9 @@ packages:
   - nextjs
 
 onlyBuiltDependencies:
-  - '@ffmpeg-installer/linux-x64'
-  - '@prisma/client'
-  - '@prisma/engines'
-  - '@tailwindcss/oxide'
+  - "@prisma/client"
+  - "@prisma/engines"
+  - "@tailwindcss/oxide"
   - better-sqlite3
   - esbuild
   - lefthook

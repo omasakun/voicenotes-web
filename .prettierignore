@@ -1,3 +1,6 @@
+# prettier specific
+pnpm-lock.yaml
+
 # secret & data
 /.env*
 !.env*.example
