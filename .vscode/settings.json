@@ -6,7 +6,6 @@
     "editor.defaultFormatter": "eeyore.yapf"
   },
   "eslint.useFlatConfig": true,
-  "eslint.workingDirectories": [".", "app"],
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact", "astro"],
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,

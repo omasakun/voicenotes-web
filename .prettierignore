@@ -4,25 +4,25 @@ pnpm-lock.yaml
 # secret & data
 /.env*
 !.env*.example
-uploads/
+**/uploads/
 
 # generated
-.astro/
-.next/
-.venv/
-coverage/
-dist/
-src/generated/prisma/
-__pycache__/
-node_modules/
+**/.astro/
+**/.next/
+**/.venv/
+**/coverage/
+**/dist/
+**/src/generated/prisma/
+**/__pycache__/
+**/node_modules/
 
-*.sqlite*
-*.tsbuildinfo
-next-env.d.ts
+**/*.sqlite*
+**/*.tsbuildinfo
+**/next-env.d.ts
 
 # debug
-*.log*
+**/*.log*
 
 # misc
-.DS_Store
-*.pem
+**/.DS_Store
+**/*.pem
