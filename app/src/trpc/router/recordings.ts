@@ -33,6 +33,10 @@ export const recordingsRouter = createTRPCRouter({
             ],
           }),
         },
+        omit: {
+          transcription: true,
+          whisperData: true,
+        },
         orderBy: { createdAt: "desc" },
       });
 
@@ -113,6 +117,10 @@ export const recordingsRouter = createTRPCRouter({
             email: true,
           },
         },
+      },
+      omit: {
+        transcription: true,
+        whisperData: true,
       },
       orderBy: {
         createdAt: "desc",
