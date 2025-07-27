@@ -1,6 +1,7 @@
 "use client";
 
 import { Toaster as Sonner, type ToasterProps } from "sonner";
+import "sonner/dist/styles.css";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   // TODO: use current theme
