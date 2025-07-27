@@ -5,7 +5,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useDebounceCallback, useIntersectionObserver } from "usehooks-ts";
+import { useIntersectionObserver } from "usehooks-ts";
+import { useDebouncedCallback } from "use-debounce";
 import { InteractiveTranscription } from "@/app/recordings/[id]/interactive-transcription";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -204,7 +205,7 @@ function AudioPlayer({ audioPlayer, compact = false }: AudioPlayerProps) {
   const { isPlaying, currentTime, duration, togglePlay, reset, seek } = audioPlayer;
   const [sliderValue, setSliderValue] = useState(currentTime);
 
-  const debouncedSeek = useDebounceCallback(seek, 100);
+  const debouncedSeek = useDebouncedCallback(seek, 100);
 
   const handleSeek = useCallback(
     ([value]: [number]) => {

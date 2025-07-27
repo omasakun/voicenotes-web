@@ -112,7 +112,7 @@ const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentT
       type="button"
       className={`w-full cursor-pointer rounded-lg p-3 text-left text-sm leading-relaxed transition-all duration-200 ${
         isActive
-          ? "border-2 border-blue-300 bg-blue-100 shadow-sm"
+          ? "border border-blue-300 bg-blue-100 shadow-sm"
           : "border border-gray-200 bg-gray-50 hover:bg-gray-100"
       } `}
       onClick={() => onSeek(sentence.start)}
