@@ -45,7 +45,7 @@ export function SignUpForm() {
       return data;
     },
     onSuccess: () => {
-      window.location.href = "/recordings";
+      window.swup.navigate("/recordings");
     },
     onError: (error: Error) => {
       setError(error.message);

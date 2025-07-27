@@ -66,7 +66,7 @@ export function RecordingsList() {
   };
 
   const handlePlay = (id: string) => {
-    window.location.href = `/recordings/${id}`;
+    window.swup.navigate(`/recordings/${id}`);
   };
 
   return (

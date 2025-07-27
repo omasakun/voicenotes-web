@@ -13,10 +13,11 @@ import { useStopImpersonatingMutation } from "@/hooks/auth-admin";
 import { authClient } from "@/lib/auth-client";
 import { TRPCReactProvider } from "@/trpc/client";
 import type { User } from "@/lib/auth";
+import { usePathname } from "@/hooks/swup";
 
 const targetPaths = ["/account", "/dashboard", "/recordings"];
 
-export function Navigation({ pathname, user }: { pathname: string; user: User }) {
+export function Navigation({ pathname, user }: { pathname: string; user: User | null }) {
   return (
     <TRPCReactProvider>
       <NavigationBody pathname={pathname} user={user} />
@@ -24,7 +25,7 @@ export function Navigation({ pathname, user }: { pathname: string; user: User })
   );
 }
 
-function NavigationBody({ pathname, user: initialUser }: { pathname: string; user: User }) {
+function NavigationBody({ pathname: initialPathname, user: initialUser }: { pathname: string; user: User | null }) {
   const { data: session } = authClient.useSession();
   const user = session?.user || initialUser;
   const stopImpersonatingMutation = useStopImpersonatingMutation();
@@ -35,7 +36,7 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.location.href = "/";
+          window.swup.navigate("/");
         },
       },
     });
@@ -45,6 +46,7 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
     await stopImpersonatingMutation.mutateAsync();
   };
 
+  const pathname = usePathname(initialPathname);
   const isActive = (path: string) => pathname === path;
 
   if (!targetPaths.some((path) => pathname.startsWith(path))) {
@@ -102,27 +104,15 @@ function NavigationBody({ pathname, user: initialUser }: { pathname: string; use
               <DropdownMenuContent collisionPadding={8}>
                 <DropdownMenuLabel>Navigation</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    window.location.href = "/recordings";
-                  }}
-                >
-                  Recordings
+                <DropdownMenuItem asChild>
+                  <a href="/recordings">Recordings</a>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    window.location.href = "/account";
-                  }}
-                >
-                  Account
+                <DropdownMenuItem asChild>
+                  <a href="/account">Account</a>
                 </DropdownMenuItem>
                 {user?.role === "admin" && (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      window.location.href = "/dashboard";
-                    }}
-                  >
-                    Admin
+                  <DropdownMenuItem asChild>
+                    <a href="/dashboard">Admin</a>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
