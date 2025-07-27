@@ -7,6 +7,7 @@ import "@fontsource-variable/inconsolata";
 
 import { Navigation } from "@/components/navigation";
 import { Font } from "astro:assets";
+import { ClientRouter } from "astro:transitions";
 
 export interface Props {
   title?: string;
@@ -28,19 +29,10 @@ const user = Astro.locals.user;
     <title>{title}</title>
     <Font cssVariable="--font-noto-sans-jp" preload />
     <Font cssVariable="--font-inconsolata" preload />
-    <script>
-      import Swup from "swup";
-      import SwupHeadPlugin from "@swup/head-plugin";
-      import SwupScriptsPlugin from "@swup/scripts-plugin";
-      window.swup = new Swup({
-        plugins: [new SwupHeadPlugin(), new SwupScriptsPlugin()],
-      });
-    </script>
+    <ClientRouter />
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    <Navigation client:load pathname={url.pathname} user={user} />
-    <main id="swup">
-      <slot />
-    </main>
+  <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" transition:animate="none">
+    <Navigation client:load pathname={url.pathname} user={user} transition:persist />
+    <slot />
   </body>
 </html>

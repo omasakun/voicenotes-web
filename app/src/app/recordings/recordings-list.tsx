@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatDuration, formatFileSize, getStatusColor, getStatusText } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
+import { navigate } from "astro:transitions/client";
 
 export function RecordingsList() {
   const [search, setSearch] = useState("");
@@ -66,7 +67,7 @@ export function RecordingsList() {
   };
 
   const handlePlay = (id: string) => {
-    window.swup.navigate(`/recordings/${id}`);
+    navigate(`/recordings/${id}`);
   };
 
   return (

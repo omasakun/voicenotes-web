@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { navigate } from "astro:transitions/client";
 
 export function SignInForm() {
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +22,7 @@ export function SignInForm() {
       return data;
     },
     onSuccess: () => {
-      window.swup.navigate("/recordings");
+      navigate("/recordings");
     },
     onError: (error: Error) => {
       setError(error.message);

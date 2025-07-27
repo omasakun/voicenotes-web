@@ -12,4 +12,3 @@ onlyBuiltDependencies:
   - msw
   - prisma
   - sharp
-  - swup

@@ -13,7 +13,7 @@ import { useStopImpersonatingMutation } from "@/hooks/auth-admin";
 import { authClient } from "@/lib/auth-client";
 import { TRPCReactProvider } from "@/trpc/client";
 import type { User } from "@/lib/auth";
-import { usePathname } from "@/hooks/swup";
+import { navigate } from "astro:transitions/client";
 
 const targetPaths = ["/account", "/dashboard", "/recordings"];
 
@@ -25,7 +25,7 @@ export function Navigation({ pathname, user }: { pathname: string; user: User | 
   );
 }
 
-function NavigationBody({ pathname: initialPathname, user: initialUser }: { pathname: string; user: User | null }) {
+function NavigationBody({ pathname, user: initialUser }: { pathname: string; user: User | null }) {
   const { data: session } = authClient.useSession();
   const user = session?.user || initialUser;
   const stopImpersonatingMutation = useStopImpersonatingMutation();
@@ -36,7 +36,7 @@ function NavigationBody({ pathname: initialPathname, user: initialUser }: { path
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          window.swup.navigate("/");
+          navigate("/");
         },
       },
     });
@@ -46,7 +46,6 @@ function NavigationBody({ pathname: initialPathname, user: initialUser }: { path
     await stopImpersonatingMutation.mutateAsync();
   };
 
-  const pathname = usePathname(initialPathname);
   const isActive = (path: string) => pathname === path;
 
   if (!targetPaths.some((path) => pathname.startsWith(path))) {

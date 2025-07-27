@@ -4,7 +4,3 @@ declare namespace App {
     session: import("@/lib/auth").Session | null;
   }
 }
-
-interface Window {
-  swup: import("swup").Swup;
-}

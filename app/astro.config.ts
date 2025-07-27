@@ -3,24 +3,10 @@ import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig, fontProviders } from "astro/config";
 import playformCompress from "@playform/compress";
-import swup from "@swup/astro";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    react(),
-    swup({
-      theme: false,
-      animationClass: false,
-      smoothScrolling: false,
-      containers: ["#swup"],
-      cache: false,
-      preload: true,
-      accessibility: true,
-      globalInstance: true,
-    }),
-    playformCompress({ Logger: 1 }),
-  ],
+  integrations: [react(), playformCompress({ Logger: 1 })],
 
   vite: {
     plugins: [tailwindcss()],
