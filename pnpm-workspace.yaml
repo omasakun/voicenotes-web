@@ -12,6 +12,3 @@ onlyBuiltDependencies:
   - msw
   - prisma
   - sharp
-
-patchedDependencies:
-  rollup: patches/rollup.patch
