@@ -29,6 +29,7 @@ export function AccountDashboard({ user: initialUser }: { user: User }) {
   const failedRecordings = stats?.failedRecordings || 0;
   const totalSize = stats?.totalSize || 0;
   const totalDuration = stats?.totalDuration || 0;
+  const successRate = totalRecordings > 0 ? (completedRecordings / totalRecordings) * 100 : 100;
   const completionRate = totalRecordings > 0 ? (1 - processingRecordings / totalRecordings) * 100 : 100;
 
   return (
@@ -59,7 +60,7 @@ export function AccountDashboard({ user: initialUser }: { user: User }) {
         <StatsCard
           title="Success Rate"
           icon={Settings}
-          value={`${completionRate.toFixed(0)}%`}
+          value={`${successRate.toFixed(0)}%`}
           description="transcription success"
         />
       </div>
