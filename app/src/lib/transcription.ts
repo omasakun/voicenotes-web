@@ -206,18 +206,20 @@ class TranscriptionQueue {
   }
 
   private async convertTo16kHzOgg(filePath: string): Promise<string> {
-    try {
-      const fullPath = join(process.cwd(), filePath);
-      const outputFilePath = changeExtension(filePath, ".16kHz.ogg");
-      const outputFullPath = join(process.cwd(), outputFilePath);
+    const fullPath = join(process.cwd(), filePath);
+    const outputFilePath = changeExtension(filePath, ".16kHz.ogg");
+    const outputFullPath = join(process.cwd(), outputFilePath);
 
-      await execa("ffmpeg", ["-y", "-i", fullPath, "-ar", "16000", "-ac", "1", "-c:a", "libvorbis", outputFullPath]);
+    const { failed, stderr } = await execa({
+      reject: false,
+    })`ffmpeg -y -i ${fullPath} -ar 16000 -ac 1 -c:a libvorbis ${outputFullPath}`;
 
-      return outputFilePath;
-    } catch (error) {
-      console.error("Failed to convert audio to 16kHz OGG:", error);
+    if (failed) {
+      console.error(`Failed to convert audio to 16kHz OGG: ${stderr}`);
       throw new Error("Audio conversion failed");
     }
+
+    return outputFilePath;
   }
 
   private async getAudioDuration(filePath: string): Promise<number> {

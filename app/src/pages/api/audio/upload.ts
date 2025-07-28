@@ -63,6 +63,10 @@ export const POST: APIRoute = async ({ request }) => {
 
         const fileSize = await stat(filePath).then((stats) => stats.size);
 
+        if (fileSize === 0) {
+          return JsonResponse({ error: "Audio file is empty" }, 400);
+        }
+
         audioFile = {
           originalName,
           fileSize,
