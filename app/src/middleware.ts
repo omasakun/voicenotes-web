@@ -1,5 +1,8 @@
 import { defineMiddleware } from "astro:middleware";
 import { auth } from "@/lib/auth";
+import { startup } from "@/lib/startup";
+
+await startup();
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url } = context;

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { startup } from "@/lib/startup";
 import { transcriptionQueue } from "@/lib/transcription";
 import { adminProcedure, createTRPCRouter, userProcedure } from "../init";
 
@@ -15,9 +14,6 @@ export const recordingsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       const { limit, cursor, search } = input;
-
-      // TODO: correct way to register startup hooks
-      startup();
 
       // TODO: https://www.prisma.io/docs/orm/prisma-client/queries/full-text-search
       const recordings = await prisma.audioRecording.findMany({

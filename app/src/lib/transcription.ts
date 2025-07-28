@@ -32,8 +32,6 @@ class TranscriptionQueue {
       return;
     }
 
-    console.log("Initializing transcription queue...");
-
     try {
       // TODO: Reset PROCESSING status to PENDING for interrupted recordings
       // const { count: numProcessing } = await prisma.audioRecording.updateMany({

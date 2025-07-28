@@ -22,13 +22,30 @@ To run the application using Docker Compose, follow these steps:
 
    Copy `.env.example` to `.env` and fill in your environment variables.
 
-2. **Start Docker Compose**
+2. **Prepare Data Directories**
+
+   Run the following commands to create necessary directories:
+
+   ```bash
+   mkdir -p data/uploads
+   touch data/data.sqlite
+   ```
+
+3. **Start Docker Compose**
 
    Ensure you have Docker installed and then execute the following command:
 
    ```bash
    docker compose up --build
    ```
+
+4. **Change Admin Password**
+
+   After the application starts, don't forget to change the admin password.
+
+   Default credentials are:
+   - **Email:** `admin@example.com`
+   - **Password:** `admin123`
 
 ## Whisper Server Deployment (Google Cloud Run)
 
