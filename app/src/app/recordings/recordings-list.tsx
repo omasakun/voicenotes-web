@@ -22,7 +22,6 @@ export function RecordingsList() {
   const { data, isLoading, fetchNextPage, hasNextPage } = useInfiniteQuery(
     trpc.recordings.list.infiniteQueryOptions(
       {
-        limit: 10,
         search: search || undefined,
       },
       {

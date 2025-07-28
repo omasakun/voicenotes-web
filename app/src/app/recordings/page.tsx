@@ -3,10 +3,11 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RecordingsList } from "./recordings-list";
 import { UploadForm } from "./upload-form";
+import type { DehydratedState } from "@tanstack/react-query";
 
-export default function RecordingsPage() {
+export default function RecordingsPage({ dehydratedState }: { dehydratedState?: DehydratedState }) {
   return (
-    <AppWrapper>
+    <AppWrapper dehydratedState={dehydratedState}>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <PageHeader title="Voice Notes" description="Upload and transcribe your audio recordings" />

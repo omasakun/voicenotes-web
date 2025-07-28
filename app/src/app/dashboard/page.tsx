@@ -4,10 +4,11 @@ import { AppWrapper } from "@/components/app-wrapper";
 import { AllInvitationsCard } from "@/components/invitations";
 import { PageHeader } from "@/components/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { DehydratedState } from "@tanstack/react-query";
 
-export default function DashboardPage() {
+export default function DashboardPage({ dehydratedState }: { dehydratedState?: DehydratedState }) {
   return (
-    <AppWrapper>
+    <AppWrapper dehydratedState={dehydratedState}>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <PageHeader title="Dashboard" description="As an admin, you can manage users and invitations." />

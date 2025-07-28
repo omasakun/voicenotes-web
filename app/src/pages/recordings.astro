@@ -1,13 +1,18 @@
 ---
 import RecordingsPage from "@/app/recordings/page";
 import Layout from "@/layouts/Layout.astro";
+import { getTRPC, prefetch, getDehydratedState } from "@/trpc/server";
 
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
 }
+
+const trpc = await getTRPC(Astro);
+await prefetch(Astro, trpc.recordings.list.infiniteQueryOptions({}));
+const dehydratedState = getDehydratedState(Astro);
 ---
 
 <Layout title="Recordings - Voicenotes">
-  <RecordingsPage client:load />
+  <RecordingsPage client:load dehydratedState={dehydratedState} />
 </Layout>

@@ -1,13 +1,18 @@
 ---
 import DashboardPage from "@/app/dashboard/page";
 import Layout from "@/layouts/Layout.astro";
+import { getTRPC, prefetch, getDehydratedState } from "@/trpc/server";
 
 const user = Astro.locals.user;
 if (user?.role !== "admin") {
   return Astro.redirect("/login");
 }
+
+const trpc = await getTRPC(Astro);
+await prefetch(Astro, trpc.invitations.listAll.queryOptions({}));
+const dehydratedState = getDehydratedState(Astro);
 ---
 
 <Layout title="Dashboard - Voicenotes">
-  <DashboardPage client:load />
+  <DashboardPage client:load dehydratedState={dehydratedState} />
 </Layout>

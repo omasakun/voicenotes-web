@@ -244,11 +244,7 @@ export function AllInvitationsCard() {
   const trpc = useTRPC();
 
   // TODO: pagination and filtering
-  const { data: allInvitations } = useQuery(
-    trpc.invitations.listAll.queryOptions({
-      limit: 50,
-    }),
-  );
+  const { data: allInvitations } = useQuery(trpc.invitations.listAll.queryOptions({}));
 
   const deleteInvitationMutation = useDeleteInvitationMutation();
   const handleDeleteInvitation = async (id: string) => {

@@ -8,6 +8,7 @@ import "@fontsource-variable/inconsolata";
 import { Navigation } from "@/components/navigation";
 import { Font } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
+import { Toaster } from "@/components/ui/sonner";
 
 export interface Props {
   title?: string;
@@ -34,5 +35,6 @@ const user = Astro.locals.user;
   <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" transition:animate="none">
     <Navigation client:load pathname={url.pathname} user={user} transition:persist />
     <slot />
+    <Toaster client:load />
   </body>
 </html>

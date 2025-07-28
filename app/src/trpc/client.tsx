@@ -17,15 +17,12 @@ function getQueryClient() {
   if (typeof window === "undefined") return makeQueryClient();
 
   // Client: use the cached query client or create a new one
+  if (browserQueryClient) return browserQueryClient;
   browserQueryClient = browserQueryClient || makeQueryClient();
   return browserQueryClient;
 }
 
-export function TRPCReactProvider(
-  props: Readonly<{
-    children: React.ReactNode;
-  }>,
-) {
+export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>

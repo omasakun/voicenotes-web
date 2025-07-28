@@ -1,13 +1,19 @@
 ---
 import AccountPage from "@/app/account/page";
 import Layout from "@/layouts/Layout.astro";
+import { getTRPC, prefetch, getDehydratedState } from "@/trpc/server";
 
 const user = Astro.locals.user;
 if (!user) {
   return Astro.redirect("/login");
 }
+
+const trpc = await getTRPC(Astro);
+await prefetch(Astro, trpc.account.stats.queryOptions());
+await prefetch(Astro, trpc.invitations.list.queryOptions());
+const dehydratedState = getDehydratedState(Astro);
 ---
 
 <Layout title="Account - Voicenotes">
-  <AccountPage client:load user={user} />
+  <AccountPage client:load user={user} dehydratedState={dehydratedState} />
 </Layout>
