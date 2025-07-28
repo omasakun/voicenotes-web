@@ -182,9 +182,12 @@ const WordTextBlock = memo(function WordTextBlock({
 }) {
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
-    <div className={cn("transition-all duration-100", isActive ? "font-semibold text-blue-900" : "")} onClick={onClick}>
+    <span
+      className={cn("transition-all duration-100", isActive ? "font-semibold text-blue-900" : "")}
+      onClick={onClick}
+    >
       {word.word}
-    </div>
+    </span>
   );
 });
 
