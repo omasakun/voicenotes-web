@@ -1,6 +1,6 @@
 "use client";
 
-import type { Invitation } from "@prisma/client";
+import type { Invitation } from "@monorepo/prisma-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistance } from "date-fns";
 import { CheckCircle, Clock, Copy, ExternalLink, Plus, Trash2, XCircle } from "lucide-react";

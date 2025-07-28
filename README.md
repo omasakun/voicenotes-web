@@ -4,6 +4,8 @@ Transcribe your voice notes to text with ease.
 
 ## Getting Started
 
+Run the following commands to set up your development environment:
+
 ```bash
 vfox install
 pnpm install
@@ -12,16 +14,25 @@ pnpm db:migrate
 pnpm dev
 ```
 
+## Docker Compose Setup
+
+To run the application using Docker Compose, follow these steps:
+
+1. **Configure Environment**
+
+   Copy `.env.example` to `.env` and fill in your environment variables.
+
+2. **Start Docker Compose**
+
+   Ensure you have Docker installed and then execute the following command:
+
+   ```bash
+   docker compose up --build
+   ```
+
 ## Whisper Server Deployment (Google Cloud Run)
 
-- [Google Cloud Console](https://console.cloud.google.com/)
-  - [Create a Google Cloud Project](https://console.cloud.google.com/projectcreate)
-  - [Setup Billing](https://console.cloud.google.com/billing/linkedaccount)
-  - [Enable Artifact Registry API](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com)
-  - [Enable Cloud Run API](https://console.cloud.google.com/flows/enableapi?apiid=run.googleapis.com)
-  - [Request a GPU Quota Increase](https://cloud.google.com/run/docs/configuring/services/gpu#request-quota)
-  - [Artifact Registry](https://console.cloud.google.com/artifacts)
-  - [Cloud Run Console](https://console.cloud.google.com/run)
+This section guides you through deploying the Whisper server on Google Cloud Run.
 
 1. **Configure Environment**
 
@@ -41,3 +52,14 @@ pnpm dev
    ```env
    WHISPER_URL=https://your-service-url.run.app
    ```
+
+**Additional Resources:**
+
+- [Google Cloud Console](https://console.cloud.google.com/)
+- [Create a Google Cloud Project](https://console.cloud.google.com/projectcreate)
+- [Setup Billing](https://console.cloud.google.com/billing/linkedaccount)
+- [Enable Artifact Registry API](https://console.cloud.google.com/flows/enableapi?apiid=artifactregistry.googleapis.com)
+- [Enable Cloud Run API](https://console.cloud.google.com/flows/enableapi?apiid=run.googleapis.com)
+- [Request a GPU Quota Increase](https://cloud.google.com/run/docs/configuring/services/gpu#request-quota)
+- [Artifact Registry](https://console.cloud.google.com/artifacts)
+- [Cloud Run Console](https://console.cloud.google.com/run)

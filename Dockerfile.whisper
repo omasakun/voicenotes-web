@@ -38,11 +38,11 @@ EOF
 
 COPY --parents uv.lock **/pyproject.toml ./
 RUN <<EOF
-uv sync --no-dev
+uv sync --locked --no-dev
 uv cache clean
 EOF
 
-COPY . .
+COPY --parents python ./
 RUN <<EOF
 uv sync --no-dev
 uv cache clean

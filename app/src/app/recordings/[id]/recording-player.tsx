@@ -1,6 +1,6 @@
 "use client";
 
-import type { AudioRecording } from "@prisma/client";
+import type { AudioRecording } from "@monorepo/prisma-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";

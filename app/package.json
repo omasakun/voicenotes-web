@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "npm run db:generate",
     "build": "astro build",
     "start": "astro preview",
-    "postinstall": "prisma generate --no-engine",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
@@ -13,6 +13,9 @@
     "auth:generate": "npx @better-auth/cli generate",
     "dev:with-whisper": "concurrently \"pnpm run -w whisper:start -- --dev\" \"pnpm run dev\"",
     "start:with-whisper": "concurrently \"pnpm run -w whisper:start\" \"pnpm run start\""
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@astrojs/node": "^9.3.0",
@@ -67,6 +70,7 @@
     "zod": "^4.0.5"
   },
   "devDependencies": {
+    "@rollup/plugin-esm-shim": "^0.1.8",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "concurrently": "^9.2.0",

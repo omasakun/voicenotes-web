@@ -1,11 +1,17 @@
 # Based on .gitignore
 
 /**
+!/app/
+!/patches/
 !/python/
+!/package.json
+!/pnpm-lock.yaml
+!/pnpm-workspace.yaml
 !/pyproject.toml
 !/uv.lock
 
 # secret & data
+**/.env*
 **/uploads/
 
 # generated

@@ -2,14 +2,11 @@
 # https://lefthook.dev/configuration/
 
 pre-commit:
+  parallel: true
   commands:
     format:
       glob: "*"
-      exclude:
-        - .dockerignore
-        - .gitignore
-        - .prettierignore
-      run: npm exec prettier --ignore-unknown {staged_files}
+      run: pnpm exec prettier --check --ignore-unknown {staged_files}
     lint:
-      glob: "*.{js,jsx,ts,tsx,astro}"
-      run: npm exec eslint {staged_files}
+      glob: "*"
+      run: pnpm exec eslint --no-warn-ignored {staged_files}

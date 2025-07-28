@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError } from "better-auth/api";
-import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
 import { redeemInvitation, requiresInvitation, validateInvitation } from "./invitations";
 import { prisma } from "./prisma";
@@ -15,7 +14,7 @@ export const auth = betterAuth({
   appName: "Voicenotes",
   secret: process.env.AUTH_SECRET,
   baseURL: process.env.BASE_URL,
-  plugins: [admin(), nextCookies()],
+  plugins: [admin()],
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,

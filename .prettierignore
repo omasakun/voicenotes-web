@@ -1,7 +1,9 @@
 # prettier specific
 pnpm-lock.yaml
+Dockerfile.*
 
 # secret & data
+/data
 /.env*
 !.env*.example
 **/uploads/
