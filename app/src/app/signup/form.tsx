@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { useTRPC } from "@/trpc/client";
+import { navigate } from "astro:transitions/client";
 
 export function SignUpForm() {
   const trpc = useTRPC();
@@ -45,7 +46,7 @@ export function SignUpForm() {
       return data;
     },
     onSuccess: () => {
-      window.swup.navigate("/recordings");
+      navigate("/recordings");
     },
     onError: (error: Error) => {
       setError(error.message);
