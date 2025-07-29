@@ -7,7 +7,7 @@ const user = Astro.locals.user;
 const { id } = Astro.params;
 
 if (!user) {
-  return Astro.redirect("/login");
+  return Astro.redirect("/signin");
 }
 
 const recording = await prisma.audioRecording.findFirst({
