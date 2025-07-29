@@ -3,7 +3,7 @@
 import type { AudioRecording } from "@monorepo/prisma-client";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Download, Edit2, Pause, Play, RotateCcw, Save, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useIntersectionObserver } from "usehooks-ts";
 import { useDebouncedCallback } from "use-debounce";
@@ -19,6 +19,7 @@ import { Slider } from "@/components/ui/slider";
 import { formatDate, formatFileSize, formatPlaybackTime, getStatusColor, getStatusText } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { type Player, usePlayer } from "./use-audio-player";
+import { getSegmentsFromRecording } from "@/lib/transcription-segmentation";
 
 interface RecordingPlayerProps {
   recording: AudioRecording;
@@ -67,6 +68,10 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
     [audioPlayer.seek, audioPlayer.play],
   );
 
+  const segments = useMemo(() => {
+    return getSegmentsFromRecording(recording);
+  }, [recording]);
+
   return (
     <div className="space-y-6">
       {showStickyPlayer && (
@@ -90,8 +95,7 @@ export function RecordingPlayer({ recording }: RecordingPlayerProps) {
       </Card>
       {recording.transcription && (
         <InteractiveTranscription
-          transcription={recording.transcription}
-          whisperData={recording.whisperData}
+          segments={segments}
           status={recording.status}
           currentTime={audioPlayer.currentTime}
           onSeek={handleSeek}

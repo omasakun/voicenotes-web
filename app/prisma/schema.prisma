@@ -113,6 +113,7 @@ model AudioRecording {
   transcriptionProgress Float   @default(0) // 0-100
   transcriptionError    String?
   whisperData           String? // JSON string containing full verbose whisper response
+  revisedSegments       String? // JSON string containing ChatGPT-processed segments with timing
 
   // Metadata
   createdAt DateTime @default(now())

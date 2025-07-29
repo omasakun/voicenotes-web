@@ -11,6 +11,16 @@ export interface Sentence {
   text: string;
 }
 
+export interface RevisedSegment {
+  start: number;
+  end: number;
+  words: WordTiming[];
+}
+
+export interface RevisedSegments {
+  segments: RevisedSegment[];
+}
+
 export interface WhisperSegment {
   id: number;
   seek: number;

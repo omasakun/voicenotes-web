@@ -1,67 +1,26 @@
 "use client";
 
 import { Loader } from "lucide-react";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn, formatPlaybackTime } from "@/lib/utils";
-import type { Sentence, WhisperVerboseResponse, WordTiming } from "@/types/transcription";
+import type { WordTiming, RevisedSegment } from "@/types/transcription";
 
 interface InteractiveTranscriptionProps {
-  transcription: string;
-  whisperData: string | null;
+  segments: RevisedSegment[];
   status: string;
   currentTime: number;
   onSeek: (time: number) => void;
 }
 
 export const InteractiveTranscription = memo(function InteractiveTranscription({
-  transcription,
-  whisperData,
+  segments,
   status,
   currentTime,
   onSeek,
 }: InteractiveTranscriptionProps) {
-  const wordTimings = useMemo(() => {
-    if (!whisperData) return [];
-    try {
-      const whisperResponse = JSON.parse(whisperData) as WhisperVerboseResponse;
-      return whisperResponse.words || [];
-    } catch (error) {
-      console.error("Failed to parse whisper data:", error);
-      return [];
-    }
-  }, [whisperData]);
-
-  const sentences = useMemo(() => getSentences(wordTimings), [wordTimings]);
-
   const isProcessing = status === "PROCESSING";
-
-  if (sentences.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{isProcessing ? "Transcription in Progress" : "Transcription"}</CardTitle>
-          <CardDescription>
-            {isProcessing
-              ? "Your audio is being transcribed. The text will update in real-time as processing continues."
-              : "Automatically generated transcript of your audio recording"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="prose prose-sm max-w-none">
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">{transcription}</p>
-            {isProcessing && (
-              <Alert variant="info" className="mt-4">
-                <Loader className="animate-spin" />
-                <AlertTitle>The transcription is currently being processed...</AlertTitle>
-              </Alert>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card>
@@ -69,13 +28,13 @@ export const InteractiveTranscription = memo(function InteractiveTranscription({
         <CardTitle>{isProcessing ? "Transcription in Progress" : "Interactive Transcription"}</CardTitle>
         <CardDescription>
           {isProcessing
-            ? "Transcription is being generated in real-time. Click on any completed sentence to jump to that part of the audio."
+            ? "Your audio is being transcribed. The text will update in real-time as processing continues."
             : "Click on any sentence to jump to that part of the audio. Highlighted text shows the current playback position."}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {sentences.map((sentence, sentenceIndex) => {
+          {segments.map((sentence, sentenceIndex) => {
             const isActive = sentence.start <= currentTime && currentTime <= sentence.end;
             return (
               <SentenceBlock
@@ -100,7 +59,7 @@ export const InteractiveTranscription = memo(function InteractiveTranscription({
 });
 
 interface SentenceBlockProps {
-  sentence: Sentence;
+  sentence: RevisedSegment;
   isActive: boolean;
   currentTime: number | null; // null if not active (performance optimization)
   onSeek: (time: number) => void;
@@ -144,7 +103,7 @@ const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentT
             </div>
           </div>
         </div>
-        <div className="whitespace-nowrap text-xs text-gray-500">
+        <div className="select-none whitespace-nowrap text-xs text-gray-500">
           {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
         </div>
       </div>
@@ -160,12 +119,7 @@ const WordBackgroundBlock = memo(function WordBackgroundBlock({
   isActive: boolean;
 }) {
   return (
-    <span
-      className={cn(
-        "-mx-1 rounded px-1 transition-all duration-100",
-        isActive ? "bg-blue-300 font-semibold" : "bg-transparent",
-      )}
-    >
+    <span className={cn("-mx-1 rounded px-1 transition-all duration-100", isActive ? "bg-blue-300" : "bg-transparent")}>
       {word.word}
     </span>
   );
@@ -190,40 +144,3 @@ const WordTextBlock = memo(function WordTextBlock({
     </span>
   );
 });
-
-function getSentences(wordTimings: WordTiming[]): Sentence[] {
-  const sentences: Sentence[] = [];
-  let currentSentence: WordTiming[] = [];
-
-  for (const wordTiming of wordTimings) {
-    currentSentence.push(wordTiming);
-
-    const endsWithPunctuation = /[.!?。！？]/.test(wordTiming.word);
-    const sentenceTooLong = currentSentence.length >= 500;
-
-    if (endsWithPunctuation || sentenceTooLong) {
-      if (currentSentence.length > 0) {
-        const sentence: Sentence = {
-          words: [...currentSentence],
-          start: currentSentence[0].start,
-          end: currentSentence[currentSentence.length - 1].end,
-          text: currentSentence.map((w) => w.word).join(" "),
-        };
-        sentences.push(sentence);
-        currentSentence = [];
-      }
-    }
-  }
-
-  if (currentSentence.length > 0) {
-    const sentence: Sentence = {
-      words: [...currentSentence],
-      start: currentSentence[0].start,
-      end: currentSentence[currentSentence.length - 1].end,
-      text: currentSentence.map((w) => w.word).join(" "),
-    };
-    sentences.push(sentence);
-  }
-
-  return sentences;
-}

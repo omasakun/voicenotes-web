@@ -4,6 +4,7 @@ import { execa } from "execa";
 import { OpenAI } from "openai";
 import type { WhisperVerboseResponse } from "@/types/transcription";
 import { transcribeWithFasterWhisper } from "./faster-whisper";
+import { processTranscription } from "./transcription-revise";
 import { prisma } from "./prisma";
 import { changeExtension } from "./utils-server";
 
@@ -109,8 +110,10 @@ class TranscriptionQueue {
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
         data: {
+          revisedSegments: null,
           status: "PROCESSING",
           transcriptionProgress: 1,
+          transcriptionError: null,
         },
       });
 
@@ -138,7 +141,7 @@ class TranscriptionQueue {
             try {
               await prisma.audioRecording.update({
                 where: { id: job.recordingId },
-                data: { transcriptionProgress: progress * 0.98 + 1 }, // 1% ~ 99% for processing
+                data: { transcriptionProgress: progress * 0.94 + 1 }, // 1% ~ 95% for processing
               });
             } catch (error) {
               console.error(`Failed to update progress for recording ${job.recordingId}:`, error);
@@ -178,13 +181,33 @@ class TranscriptionQueue {
         },
       });
 
-      // Save transcription to database
+      await prisma.audioRecording.update({
+        where: { id: job.recordingId },
+        data: {
+          transcription: whisperResponse.text,
+          whisperData: JSON.stringify(whisperResponse),
+        },
+      });
+
+      let revisedSegments = null;
+      if (whisperResponse.words && whisperResponse.words.length > 0) {
+        try {
+          const processedSegments = await processTranscription(whisperResponse.text, whisperResponse.words);
+          revisedSegments = JSON.stringify(processedSegments);
+        } catch (error) {
+          console.error(`ChatGPT processing failed for recording ${job.recordingId}:`, error);
+          // Continue without revised segments
+        }
+      }
+
+      // Save final transcription to database
       await prisma.audioRecording.update({
         where: { id: job.recordingId },
         data: {
           duration: whisperResponse.duration,
           transcription: whisperResponse.text,
           whisperData: JSON.stringify(whisperResponse),
+          revisedSegments,
           status: "COMPLETED",
           transcriptionProgress: 100,
           transcriptionError: null,
