@@ -7,7 +7,7 @@ import type { AstroGlobal } from "astro";
 
 export type AstroTRPC = TRPCOptionsProxy<AppRouter>;
 
-export function getQueryClient(astro: AstroGlobal) {
+function getQueryClient(astro: AstroGlobal) {
   astro.locals.queryClient ??= makeQueryClient();
   return astro.locals.queryClient;
 }
@@ -17,6 +17,7 @@ async function getTRPCContext(astro: AstroGlobal) {
   return astro.locals.trpcContext;
 }
 
+/** Useful for prefetching data in Astro components */
 export async function getTRPC(astro: AstroGlobal): Promise<AstroTRPC> {
   if (astro.locals.trpc) return astro.locals.trpc;
 

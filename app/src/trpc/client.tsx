@@ -13,13 +13,15 @@ export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
 
 let browserQueryClient: QueryClient;
 function getQueryClient() {
-  // Server: always make a new query client
-  if (typeof window === "undefined") return makeQueryClient();
-
-  // Client: use the cached query client or create a new one
-  if (browserQueryClient) return browserQueryClient;
-  browserQueryClient = browserQueryClient || makeQueryClient();
-  return browserQueryClient;
+  if (import.meta.env.SSR) {
+    // Server: always make a new query client
+    return makeQueryClient();
+  } else {
+    // Client: use the cached query client or create a new one
+    if (browserQueryClient) return browserQueryClient;
+    browserQueryClient = browserQueryClient || makeQueryClient();
+    return browserQueryClient;
+  }
 }
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {

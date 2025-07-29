@@ -30,7 +30,7 @@ const user = Astro.locals.user;
     <title>{title}</title>
     <Font cssVariable="--font-noto-sans-jp" preload />
     <Font cssVariable="--font-inconsolata" preload />
-    <ClientRouter />
+    <ClientRouter fallback="swap" />
   </head>
   <body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" transition:animate="none">
     <Navigation client:load pathname={url.pathname} user={user} transition:persist />
