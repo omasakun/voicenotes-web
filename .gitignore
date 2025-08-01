@@ -13,6 +13,7 @@
 **/src/generated/prisma/
 **/__pycache__/
 **/node_modules/
+**/*.egg-info/
 
 **/*.sqlite*
 **/*.tsbuildinfo

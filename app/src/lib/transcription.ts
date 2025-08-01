@@ -133,6 +133,7 @@ class TranscriptionQueue {
 
       const fullPath = join(process.cwd(), convertedFilePath);
       const whisperResponse = await transcribeWithFasterWhisper(fullPath, {
+        // this initialPrompt is important for correct punctuation
         initialPrompt: "こんにちは。天気、晴れていますね！うまくいくと良いですねー。",
         async onProgress(progress) {
           const now = Date.now();
@@ -233,9 +234,11 @@ class TranscriptionQueue {
     const outputFilePath = changeExtension(filePath, ".16kHz.ogg");
     const outputFullPath = join(process.cwd(), outputFilePath);
 
+    // https://wiki.hydrogenaudio.org/index.php?title=Recommended_Ogg_Vorbis#Recommended_Encoder_Settings
+    // https://ffmpeg.org/ffmpeg-codecs.html#libvorbis
     const { failed, stderr } = await execa({
       reject: false,
-    })`ffmpeg -y -i ${fullPath} -ar 16000 -ac 1 -c:a libvorbis ${outputFullPath}`;
+    })`ffmpeg -y -i ${fullPath} -ar 16000 -ac 1 -c:a libvorbis -q:a 3 ${outputFullPath}`;
 
     if (failed) {
       console.error(`Failed to convert audio to 16kHz OGG: ${stderr}`);
@@ -248,15 +251,8 @@ class TranscriptionQueue {
   private async getAudioDuration(filePath: string): Promise<number> {
     try {
       const fullPath = join(process.cwd(), filePath);
-      const { stdout } = await execa("ffprobe", [
-        "-v",
-        "error",
-        "-show_entries",
-        "format=duration",
-        "-of",
-        "default=noprint_wrappers=1:nokey=1",
-        fullPath,
-      ]);
+      const { stdout } =
+        await execa`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ${fullPath}`;
 
       const duration = parseFloat(stdout);
       if (!Number.isNaN(duration)) {

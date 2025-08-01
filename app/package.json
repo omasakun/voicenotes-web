@@ -11,7 +11,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "auth:generate": "npx @better-auth/cli generate",
-    "dev:with-whisper": "concurrently \"pnpm run -w whisper:start -- --dev\" \"pnpm run dev\"",
+    "dev:with-whisper": "concurrently \"pnpm run -w whisper:start --dev\" \"pnpm run dev\"",
     "start:with-whisper": "concurrently \"pnpm run -w whisper:start\" \"pnpm run start\""
   },
   "prisma": {
