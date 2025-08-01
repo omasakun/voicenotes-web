@@ -28,8 +28,12 @@ PORT = int(os.getenv("WHISPER_PORT"))
 MODEL_NAME = os.getenv("WHISPER_MODEL_NAME")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE")
 DEVICE = os.getenv("WHISPER_DEVICE")
+BATCH_SIZE = int(os.getenv("WHISPER_BATCH_SIZE"))
 PASSWORD = os.getenv("WHISPER_PASSWORD")
 SHUTDOWN_TIMEOUT = int(os.getenv("WHISPER_SHUTDOWN_TIMEOUT", "-1"))
+
+if any(var is None for var in [HOST, PORT, MODEL_NAME, COMPUTE_TYPE, DEVICE, BATCH_SIZE, PASSWORD]):
+  raise ValueError("One or more environment variables are not set. Please check your .env file.")
 
 @asynccontextmanager
 async def lifespan(app):
@@ -68,7 +72,7 @@ class MyLock(asyncio.Lock):
     return (not self.locked()) and (datetime.now() - self.mtime) > timedelta(seconds=seconds)
 
 app = FastAPI(lifespan=lifespan)
-whisper = Whisper(model_name=MODEL_NAME, compute_type=COMPUTE_TYPE, device=DEVICE)
+whisper = Whisper(model_name=MODEL_NAME, compute_type=COMPUTE_TYPE, device=DEVICE, batch_size=BATCH_SIZE)
 lock = MyLock()
 security = HTTPBasic()
 
