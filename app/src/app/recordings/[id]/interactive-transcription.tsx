@@ -67,25 +67,32 @@ interface SentenceBlockProps {
 
 const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentTime, onSeek }: SentenceBlockProps) {
   return (
-    <button
-      type="button"
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+    <div
       className={`w-full cursor-pointer rounded-lg p-3 text-left text-sm leading-relaxed transition-all duration-200 ${
         isActive
           ? "border border-blue-300 bg-blue-100 shadow-sm"
           : "border border-gray-200 bg-gray-50 hover:bg-gray-100"
       } `}
-      onClick={() => onSeek(sentence.start)}
+      onClick={() => {
+        // Only seek if user is not selecting text
+        const selection = window.getSelection();
+        if (selection && selection.type === "Range" && selection.toString().length > 0) {
+          return;
+        }
+        onSeek(sentence.start);
+      }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="grid">
-            <div className="col-1 row-1 flex select-none flex-wrap text-transparent">
+            <div className="col-1 row-1 inline-block select-none text-transparent">
               {sentence.words.map((word, wordIndex) => {
                 const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
                 return <WordBackgroundBlock key={`bg-${word.start}-${wordIndex}`} word={word} isActive={isActive} />;
               })}
             </div>
-            <div className="col-1 row-1 flex flex-wrap">
+            <div className="col-1 row-1 inline-block">
               {sentence.words.map((word, wordIndex) => {
                 const isActive = currentTime !== null && word.start <= currentTime && currentTime <= word.end + 0.1;
                 return (
@@ -107,7 +114,7 @@ const SentenceBlock = memo(function SentenceBlock({ sentence, isActive, currentT
           {formatPlaybackTime(sentence.start)} - {formatPlaybackTime(sentence.end)}
         </div>
       </div>
-    </button>
+    </div>
   );
 });
 
